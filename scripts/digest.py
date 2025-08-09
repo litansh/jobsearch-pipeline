@@ -43,7 +43,8 @@ def main():
         return
     lines = ["<b>Top job matches for today</b>"]
     for r in rows:
-        lines.append(f"• <b>{r['title']}</b> @ {r['company']} ({r.get('location','')}) — score {r['score']}\n  {r['url']}\n  Why: {r['why_fit']}")
+        age_info = f" [Day {r.get('age', 1)}]" if r.get('age') else ""
+        lines.append(f"• <b>{r['title']}</b> @ {r['company']} ({r.get('location','')}) — score {r['score']}{age_info}\n  {r['url']}\n  Why: {r['why_fit']}")
     send_telegram("\n\n".join(lines))
     print(f"[OK] Sent digest with {len(rows)} items.")
 

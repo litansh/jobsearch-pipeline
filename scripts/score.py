@@ -53,6 +53,8 @@ def main():
                 "url": j.get("url"),
                 "score": round(score, 4),
                 "why_fit": ", ".join(why) or "strong profile alignment",
+                "age": j.get("age", 1),
+                "first_seen": j.get("first_seen", ""),
             })
     rows.sort(key=lambda r: r["score"], reverse=True)
     with open(OUT_SCORES, "w", encoding="utf-8") as f:

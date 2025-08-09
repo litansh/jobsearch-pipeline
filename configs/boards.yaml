@@ -2,22 +2,45 @@ geo: "Israel"
 titles:
   - "Head of DevOps"
   - "DevOps Group Lead"
-  - "Director of DevOps"
+  - "Director of DevOps" 
+  - "DevOps Director"
+  - "DevOps Manager"
+  - "DevOps Team Lead"
+  - "VP DevOps"
+  - "Chief DevOps"
   - "Head of Platform"
-  - "Director of Platform"
+  - "Platform Director" 
+  - "Platform Manager"
+  - "Head of Infrastructure"
+  - "Infrastructure Director"
+  - "Infrastructure Manager"
   - "Head of SRE"
-  - "Director of SRE"
+  - "SRE Director"
+  - "SRE Manager"
+  - "Engineering Manager"
 sources:
   greenhouse:
     companies:
-      - mondaycom           # Monday.com
-      - wix                 # Wix
-      - riskified           # Riskified
-      - ironSource          # ironSource
+      # Israeli Companies
+      - riskified           # Riskified - DevOps Security roles
+      - jfrog               # JFrog - DevOps Team Lead roles  
+      - taboola             # Taboola - Israeli adtech company
+      - nice                # NICE Systems - Israeli enterprise software
+      - via                 # Via - Israeli mobility/transportation
+      - mobility            # Mobility company
+      - payoneer            # Payoneer - Israeli fintech (has DevOps roles)
+      - pagaya              # Pagaya - Israeli AI/fintech
+      # Global Companies with Israeli Offices  
+      - snyk                # Snyk - Security/DevOps company
+      - redis               # Redis - Infrastructure company
+      - solarwinds          # SolarWinds - Infrastructure company
+      - elastic             # Elastic - Search/observability
+      - mongodb             # MongoDB - Database company
+      - datadog             # Datadog - Monitoring/observability
+      - zscaler             # Zscaler - Cloud security (has DevOps roles)
+      - okta                # Okta - Identity management
+      - dropbox             # Dropbox - Cloud storage
   lever:
     companies:
-      - lemonade            # Lemonade
-      - joytunes            # JoyTunes / Simply
-      - rapyd               # Rapyd
-      - via                 # Via
+      - spotify             # Spotify - Has Israeli R&D
   company_pages: []         # add direct JSON/RSS endpoints if you have
