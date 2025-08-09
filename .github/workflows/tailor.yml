@@ -1,0 +1,66 @@
+name: Generate Tailored Cover Note
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: 'Job ID from outputs/scores.jsonl'
+        required: true
+        type: string
+
+jobs:
+  tailor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Download latest job data
+      uses: actions/download-artifact@v4
+      with:
+        pattern: job-search-data-*
+        merge-multiple: true
+        path: .
+      continue-on-error: true
+      
+    - name: Generate cover note
+      id: generate
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        echo "Generating cover note for job ID: ${{ inputs.job_id }}"
+        cover_note=$(python scripts/tailor.py "${{ inputs.job_id }}")
+        echo "COVER_NOTE<<EOF" >> $GITHUB_OUTPUT
+        echo "$cover_note" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        # Save to file for artifact
+        mkdir -p outputs
+        echo "$cover_note" > "outputs/cover_note_${{ inputs.job_id }}.txt"
+        
+    - name: Create step summary
+      run: |
+        echo "## Cover Note for Job ID: ${{ inputs.job_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.generate.outputs.COVER_NOTE }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        
+    - name: Upload cover note as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cover-note-${{ inputs.job_id }}
+        path: outputs/cover_note_${{ inputs.job_id }}.txt
+        retention-days: 90

@@ -1,0 +1,12 @@
+# Project rules for Cursor (Litan jobsearch pipeline)
+- Python: 3.11, Black/PEP8, small pure functions, type hints where helpful.
+- Networking: requests.Session with 20s timeout + max 3 retries (exponential backoff).
+- Data: never commit real secrets; only use .env and GH Actions secrets.
+- Sources: prefer Greenhouse/Lever/Ashby/public feeds; do NOT scrape LinkedIn.
+- Files:
+  /scripts -> python CLIs only (no notebooks)
+  /configs -> YAML/MD only; don’t change schema without asking
+  /data, /outputs -> never commit PII/secrets
+- Observability: helpful prints; don’t spam logs.
+- Tests: pytest; mock external calls (no live network in tests).
+- CI: keep workflows under 15 minutes.

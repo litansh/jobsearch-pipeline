@@ -1,0 +1,23 @@
+geo: "Israel"
+titles:
+  - "Head of DevOps"
+  - "DevOps Group Lead"
+  - "Director of DevOps"
+  - "Head of Platform"
+  - "Director of Platform"
+  - "Head of SRE"
+  - "Director of SRE"
+sources:
+  greenhouse:
+    companies:
+      - mondaycom           # Monday.com
+      - wix                 # Wix
+      - riskified           # Riskified
+      - ironSource          # ironSource
+  lever:
+    companies:
+      - lemonade            # Lemonade
+      - joytunes            # JoyTunes / Simply
+      - rapyd               # Rapyd
+      - via                 # Via
+  company_pages: []         # add direct JSON/RSS endpoints if you have

@@ -1,0 +1,15 @@
+python-dotenv>=1.0.0
+requests>=2.31.0
+pyyaml>=6.0.1
+openai>=1.30.0
+numpy>=1.26.0
+tiktoken>=0.7.0
+Jinja2>=3.1.4
+
+notion-client>=2.2.1
+pandas>=2.2.2
+
+# Testing
+pytest>=7.4.0
+pytest-mock>=3.11.1
+responses>=0.23.0
