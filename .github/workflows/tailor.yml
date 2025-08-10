@@ -1,0 +1,57 @@
+name: Tailor Application Kit
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: 'Job ID from outputs/scores.jsonl'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  tailor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate cover note
+        id: cover
+        run: |
+          source .venv/bin/activate
+          # Ensure scores exist (optional: add crawl here if you prefer)
+          python scripts/score.py || true
+          python scripts/tailor.py "${{ inputs.job_id }}" > cover.txt
+          echo "COVER_PATH=$(pwd)/cover.txt" >> $GITHUB_OUTPUT
+
+      - name: Show cover note
+        run: |
+          echo "### Tailored Cover Note" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat cover.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cover-note-${{ inputs.job_id }}
+          path: cover.txt
