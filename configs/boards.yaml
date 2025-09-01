@@ -1,23 +1,82 @@
 geo: "Israel"
 titles:
+  # DevOps Leadership
   - "Head of DevOps"
   - "DevOps Group Lead"
   - "Director of DevOps" 
   - "DevOps Director"
   - "DevOps Manager"
-  - "DevOps Team Lead"
   - "VP DevOps"
+  - "VP of DevOps"
+  - "Chief DevOps Officer"
   - "Chief DevOps"
+  
+  # Platform Engineering Leadership
   - "Head of Platform"
+  - "Head of Platform Engineering"
   - "Platform Director" 
+  - "Director of Platform"
+  - "Director of Platform Engineering"
   - "Platform Manager"
+  - "VP Platform"
+  - "VP of Platform Engineering"
+  
+  # Infrastructure Leadership
   - "Head of Infrastructure"
   - "Infrastructure Director"
+  - "Director of Infrastructure"
   - "Infrastructure Manager"
+  - "VP Infrastructure"
+  - "VP of Infrastructure"
+  - "Chief Infrastructure Officer"
+  
+  # SRE Leadership
   - "Head of SRE"
+  - "Head of Site Reliability"
   - "SRE Director"
+  - "Director of SRE"
+  - "Director of Site Reliability"
   - "SRE Manager"
-  - "Engineering Manager"
+  - "VP SRE"
+  - "VP of Site Reliability"
+  
+  # Engineering Operations & Production
+  - "Head of Engineering Operations"
+  - "Director of Engineering Operations"
+  - "VP Engineering Operations"
+  - "Head of Production Engineering"
+  - "Director of Production Engineering"
+  - "Production Owner"
+  - "Head of Production"
+  
+  # Cloud & Architecture Leadership
+  - "Head of Cloud"
+  - "Cloud Director"
+  - "Director of Cloud"
+  - "VP Cloud"
+  - "VP of Cloud Engineering"
+  - "Head of Cloud Engineering"
+  - "Solutions Architect Director"
+  - "Principal Solutions Architect"
+  
+  # Technology Leadership (Senior)
+  - "VP Engineering"
+  - "VP of Engineering"
+  - "Director of Engineering"
+  - "Engineering Manager" 
+  - "Senior Engineering Manager"
+  - "Principal Engineering Manager"
+  - "CTO"
+  - "Chief Technology Officer"
+  - "VP Technology"
+  - "VP of Technology"
+  
+  # Security Engineering Leadership
+  - "Head of Security Engineering"
+  - "Director of Security Engineering"
+  - "VP Security Engineering"
+  - "CISO" 
+  - "Chief Information Security Officer"
 sources:
   greenhouse:
     companies:
@@ -44,3 +103,25 @@ sources:
     companies:
       - spotify             # Spotify - Has Israeli R&D
   company_pages: []         # add direct JSON/RSS endpoints if you have
+  
+  # Additional Israeli job sources
+  israeli_sources:
+    rss_feeds:
+      - url: "https://www.themarker.com/career/rss/"
+        name: "TheMarker Careers"
+        type: "rss"
+      - url: "https://www.alljobs.co.il/rss/jobs.aspx?region=2,3,4&category=2"
+        name: "AllJobs Tech Central Israel"
+        type: "rss"
+    
+    apis:
+      comeet:
+        companies: ["monday", "wix", "outbrain", "gong", "cyberark", "checkmarx", "riskified", "walkme", "fiverr", "ironSource", "nice"]
+      smartrecruiters:
+        companies: ["wix", "outbrain", "monday", "gong", "cyberark"]
+      
+    vc_portfolios:
+      bessemer: ["monday", "wix", "fiverr", "lightricks"]
+      insight: ["armis", "orca-security", "snyk"] 
+      viola: ["ironSource", "outbrain", "riskified"]
+      83north: ["gong", "lemonade", "fundguard"]

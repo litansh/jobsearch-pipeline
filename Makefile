@@ -25,7 +25,7 @@ clean:  ## Clean temporary files and outputs
 # Main pipeline commands
 run-all: crawl-all deduplicate track-jobs score digest  ## Run complete pipeline
 
-crawl-all: crawl crawl-comprehensive crawl-known-jobs  ## Run all crawling methods
+crawl-all: crawl crawl-real crawl-israeli crawl-top-companies crawl-known-jobs  ## Run all crawling methods
 
 crawl:  ## Search Greenhouse/Lever APIs
 	PYTHONPATH=. python scripts/crawl.py
@@ -35,6 +35,12 @@ crawl-comprehensive:  ## Search Israeli companies + job boards
 
 crawl-real:  ## Search using real job finder (verified sources)
 	PYTHONPATH=. python scripts/real_job_finder.py
+
+crawl-israeli:  ## Search Israeli job platforms (AllJobs, TheMarker, Comeet, etc.)
+	PYTHONPATH=. python scripts/israeli_job_sources.py
+
+crawl-top-companies:  ## Search top Israeli tech companies (2025 unicorns & high-growth)
+	PYTHONPATH=. python scripts/top_israeli_companies.py
 
 crawl-known-jobs:  ## Add manually verified jobs
 	PYTHONPATH=. python scripts/add_known_jobs.py

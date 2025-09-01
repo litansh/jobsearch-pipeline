@@ -20,3 +20,6 @@ responses>=0.23.0
 
 # Telegram webhook server
 flask>=2.3.0
+
+# RSS feed parsing for Israeli job sources
+feedparser>=6.0.0
