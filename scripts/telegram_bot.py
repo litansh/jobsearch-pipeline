@@ -333,6 +333,134 @@ class TelegramBot:
             logger.error(f"Failed to delete webhook: {e}")
             return False
     
+    def handle_text_command(self, message_text: str, chat_id: int):
+        """Handle text commands from Telegram."""
+        command = message_text.lower().strip()
+        
+        if command in ["/start", "/help"]:
+            help_text = """🤖 <b>Job Search Pipeline Bot</b>
+
+<b>Available Commands:</b>
+🔍 <code>/search</code> - Run complete job search pipeline
+🔍 <code>/crawl</code> - Quick search (Greenhouse/Lever only)
+📊 <code>/stats</code> - Show job statistics
+📝 <code>/applied</code> - List applied jobs
+❌ <code>/ignored</code> - List ignored jobs
+🧹 <code>/clean</code> - Clean old jobs
+🔄 <code>/help</code> - Show this help
+
+<b>Interactive Features:</b>
+• Click 🔗 <i>Apply Now</i> to open job applications
+• Click ✅ <i>Mark Applied</i> after applying
+• Click ❌ <i>Not Relevant</i> to hide jobs
+• Click ↩️ <i>Undo</i> to reverse actions
+
+All button clicks automatically sync with GitHub Actions! 🚀"""
+            
+            self.send_message(help_text)
+            
+        elif command == "/search":
+            self.send_message("🔍 <b>Starting Complete Job Search...</b>\n\n⏳ This will take 2-3 minutes. I'll send you results when ready!")
+            self.trigger_github_search_pipeline("full")
+            
+        elif command == "/crawl":
+            self.send_message("🔍 <b>Starting Quick Job Search...</b>\n\n⏳ Searching Greenhouse/Lever APIs...")
+            self.trigger_github_search_pipeline("quick")
+            
+        elif command == "/stats":
+            stats = job_state.get_stats()
+            stats_text = f"""📊 <b>Job Statistics</b>
+
+✅ <b>Applied to:</b> {stats['applied']} jobs
+❌ <b>Ignored:</b> {stats['ignored']} jobs  
+📤 <b>Sent to Telegram:</b> {stats['sent_to_telegram']} jobs
+📅 <b>Last updated:</b> {stats['last_updated']}
+
+Use /applied or /ignored to see specific jobs."""
+            self.send_message(stats_text)
+            
+        elif command == "/applied":
+            self.list_job_category("applied")
+            
+        elif command == "/ignored":
+            self.list_job_category("ignored")
+            
+        elif command == "/clean":
+            self.send_message("🧹 <b>Cleaning Old Jobs...</b>\n\n⏳ Removing jobs older than 14 days...")
+            self.trigger_github_search_pipeline("clean")
+            
+        else:
+            self.send_message("❓ Unknown command. Send /help to see available commands.")
+    
+    def list_job_category(self, category: str):
+        """List jobs from a specific category (applied/ignored)."""
+        if category == "applied":
+            jobs_dict = job_state.data.get("applied", {})
+            title = "📝 Applied Jobs"
+            emoji = "✅"
+        else:
+            jobs_dict = job_state.data.get("ignored", {})
+            title = "❌ Ignored Jobs"
+            emoji = "❌"
+        
+        if not jobs_dict:
+            self.send_message(f"{emoji} <b>{title}</b>\n\nNo {category} jobs found.")
+            return
+        
+        message = f"{emoji} <b>{title}</b>\n\n"
+        for job_id, job_info in list(jobs_dict.items())[:10]:  # Limit to 10
+            message += f"• <b>{job_info.get('title', 'Unknown')}</b>\n"
+            message += f"  🏢 {job_info.get('company', 'Unknown')}\n"
+            message += f"  📅 {job_info.get('date', 'Unknown')}\n"
+            if category == "ignored":
+                message += f"  💭 {job_info.get('reason', 'Unknown')}\n"
+            message += f"  🆔 <code>{job_id[:12]}...</code>\n\n"
+        
+        if len(jobs_dict) > 10:
+            message += f"... and {len(jobs_dict) - 10} more jobs"
+        
+        self.send_message(message)
+    
+    def trigger_github_search_pipeline(self, search_type: str):
+        """Trigger GitHub Actions to run job search pipeline."""
+        if not GITHUB_TOKEN:
+            self.send_message("❌ GitHub integration not configured. Cannot trigger remote search.")
+            return False
+        
+        try:
+            url = f"https://api.github.com/repos/{GITHUB_REPO}/dispatches"
+            headers = {
+                "Authorization": f"Bearer {GITHUB_TOKEN}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            payload = {
+                "event_type": "telegram_search_command",
+                "client_payload": {
+                    "search_type": search_type,
+                    "triggered_by": "telegram_bot"
+                }
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=10)
+            response.raise_for_status()
+            
+            logger.info(f"Successfully triggered GitHub search pipeline: {search_type}")
+            
+            if search_type == "full":
+                self.send_message("✅ <b>Job Search Pipeline Started!</b>\n\n🔍 Running comprehensive search across all sources...\n📱 You'll receive results in 2-3 minutes!")
+            elif search_type == "quick":
+                self.send_message("✅ <b>Quick Search Started!</b>\n\n🔍 Searching Greenhouse/Lever APIs...\n📱 You'll receive results shortly!")
+            elif search_type == "clean":
+                self.send_message("✅ <b>Job Cleanup Started!</b>\n\n🧹 Removing old jobs from database...")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to trigger GitHub search pipeline: {e}")
+            self.send_message(f"❌ <b>Failed to start job search:</b>\n\n{str(e)}")
+            return False
+    
     def get_updates(self, offset: int = 0) -> list:
         """Get updates using polling (alternative to webhooks)."""
         url = f"{self.base_url}/getUpdates"
@@ -402,13 +530,22 @@ def main():
                             callback_data, callback_query_id, message_id, 
                             job_title, job_company
                         )
-                
+                    
+                    # Handle text messages (commands)
+                    if "message" in update and "text" in update["message"]:
+                        message_text = update["message"]["text"].strip()
+                        chat_id = update["message"]["chat"]["id"]
+                        
+                        # Only respond to messages from the configured chat
+                        if str(chat_id) == str(TELEGRAM_CHAT):
+                            telegram_bot.handle_text_command(message_text, chat_id)
+                    
             except KeyboardInterrupt:
                 print("\nStopping polling...")
                 break
             except Exception as e:
                 logger.error(f"Error in polling: {e}")
-                
+                    
     else:
         print("Invalid command")
 
