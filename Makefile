@@ -72,6 +72,9 @@ webhook-server:  ## Start webhook server for Telegram callbacks (dev mode)
 webhook-poll:  ## Start polling mode for Telegram callbacks (alternative to webhook)
 	PYTHONPATH=. python scripts/telegram_bot.py poll
 
+auto-sync:  ## Start auto-sync of job state to GitHub (run alongside telegram bot)
+	PYTHONPATH=. python scripts/auto_sync_state.py start
+
 # GitHub Actions helpers
 gh-setup:  ## Setup git config for GitHub Actions
 	PYTHONPATH=. python scripts/github_actions_helper.py setup-git

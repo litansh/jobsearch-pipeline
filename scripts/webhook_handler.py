@@ -8,6 +8,8 @@ import json
 import os
 from scripts.telegram_bot import telegram_bot
 from dotenv import load_dotenv
+import requests
+import subprocess
 
 load_dotenv()
 
@@ -15,6 +17,55 @@ app = Flask(__name__)
 
 # Simple secret token for webhook security (optional)
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")  # Personal Access Token
+GITHUB_REPO = "litansh/jobsearch-pipeline"
+
+def trigger_github_sync_workflow(callback_data, job_title, job_company):
+    """Trigger GitHub Actions workflow to sync job state."""
+    if not GITHUB_TOKEN:
+        print("[WEBHOOK] No GITHUB_TOKEN configured, skipping GitHub sync")
+        return False
+    
+    # Determine action type
+    if callback_data.startswith("apply_"):
+        action = "applied"
+        job_id = callback_data.replace("apply_", "")
+    elif callback_data.startswith("ignore_"):
+        action = "ignored"
+        job_id = callback_data.replace("ignore_", "")
+    elif callback_data.startswith("undo_"):
+        action = "undo"
+        job_id = callback_data.replace("undo_apply_", "").replace("undo_ignore_", "")
+    else:
+        return False
+    
+    # Trigger workflow_dispatch on sync-job-state workflow
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/sync-job-state.yml/dispatches"
+    
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    
+    payload = {
+        "ref": "main",
+        "inputs": {
+            "action": action,
+            "job_id": job_id,
+            "job_title": job_title,
+            "job_company": job_company
+        }
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        response.raise_for_status()
+        print(f"[WEBHOOK] Triggered GitHub sync workflow for {action} action on {job_title}")
+        return True
+    except Exception as e:
+        print(f"[WEBHOOK] Failed to trigger GitHub workflow: {e}")
+        return False
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -51,6 +102,16 @@ def webhook():
                 callback_data, callback_query_id, message_id, 
                 job_title, job_company
             )
+            
+            # Trigger GitHub Actions workflow to sync job state
+            try:
+                success = trigger_github_sync_workflow(callback_data, job_title, job_company)
+                if success:
+                    print("[WEBHOOK] ✅ Triggered GitHub Actions to sync job state")
+                else:
+                    print("[WEBHOOK] ❌ Failed to trigger GitHub Actions sync")
+            except Exception as e:
+                print(f"[WEBHOOK] Error triggering GitHub sync: {e}")
         
         return jsonify({"ok": True})
         

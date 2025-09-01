@@ -165,7 +165,8 @@ class TelegramBot:
                 confirmation = f"✅ <b>Job Marked as Applied</b>\n\n"
                 confirmation += f"📝 <b>{job_title}</b> at <b>{job_company}</b> has been marked as applied.\n\n"
                 confirmation += f"🎯 This job will no longer appear in your daily digest.\n"
-                confirmation += f"🚀 Best of luck with your application!"
+                confirmation += f"🚀 Best of luck with your application!\n\n"
+                confirmation += f"💡 <i>Tip: Run 'make gh-push-state' to sync this change to GitHub Actions</i>"
                 self.send_message(confirmation)
                 
             elif callback_data.startswith("ignore_"):
@@ -192,7 +193,8 @@ class TelegramBot:
                 confirmation = f"❌ <b>Job Marked as Not Relevant</b>\n\n"
                 confirmation += f"📝 <b>{job_title}</b> at <b>{job_company}</b> has been marked as not relevant.\n\n"
                 confirmation += f"🎯 This job will no longer appear in your daily digest.\n"
-                confirmation += f"🤖 I'll use this feedback to better match your preferences in future searches!"
+                confirmation += f"🤖 I'll use this feedback to better match your preferences in future searches!\n\n"
+                confirmation += f"💡 <i>Tip: Run 'make gh-push-state' to sync this change to GitHub Actions</i>"
                 self.send_message(confirmation)
                 
             elif callback_data.startswith("undo_apply_"):

@@ -1,0 +1,124 @@
+name: Sync Job State
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action performed (applied/ignored/undo)'
+        required: true
+        type: string
+      job_id:
+        description: 'Job ID'
+        required: true
+        type: string
+      job_title:
+        description: 'Job title'
+        required: false
+        type: string
+      job_company:
+        description: 'Job company'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-job-state:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Create data directories
+      run: |
+        mkdir -p data/raw data/processed outputs
+
+    - name: Setup git for state persistence
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py setup-git
+
+    - name: Pull existing job state
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE  
+        python scripts/github_actions_helper.py pull
+
+    - name: Initialize state files
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py init
+
+    - name: Apply job state change
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        ACTION="${{ github.event.inputs.action }}"
+        JOB_ID="${{ github.event.inputs.job_id }}"
+        JOB_TITLE="${{ github.event.inputs.job_title }}"
+        JOB_COMPANY="${{ github.event.inputs.job_company }}"
+        
+        echo "Processing: $ACTION for job $JOB_ID ($JOB_TITLE @ $JOB_COMPANY)"
+        
+        if [ "$ACTION" = "applied" ]; then
+          python scripts/job_state.py applied "$JOB_ID"
+        elif [ "$ACTION" = "ignored" ]; then
+          python scripts/job_state.py ignored "$JOB_ID"
+        elif [ "$ACTION" = "undo" ]; then
+          python scripts/job_state.py remove-applied "$JOB_ID" || python scripts/job_state.py remove-ignored "$JOB_ID"
+        fi
+
+    - name: Commit job state changes
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        BRANCH="sync/job-state-$(date +'%Y%m%d-%H%M%S')"
+        git checkout -b $BRANCH
+        git add data/processed/job_state.json
+        git commit -m "🔘 Sync job state from Telegram: ${{ github.event.inputs.action }} ${{ github.event.inputs.job_title }}" || echo "No changes"
+        git push origin $BRANCH
+        echo "branch_name=$BRANCH" >> "$GITHUB_ENV"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      id: cpr
+      with:
+        base: main
+        branch: ${{ env.branch_name }}
+        title: "🔘 Telegram job state sync: ${{ github.event.inputs.action }}"
+        body: |
+          **Telegram Button Action Sync**
+          
+          - **Action**: ${{ github.event.inputs.action }}
+          - **Job**: ${{ github.event.inputs.job_title }} @ ${{ github.event.inputs.job_company }}
+          - **Job ID**: ${{ github.event.inputs.job_id }}
+          - **Triggered**: Automatically from Telegram webhook
+          
+          This ensures GitHub Actions respects your Telegram button clicks.
+        delete-branch: true
+        draft: false
+
+    - name: Auto-approve PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr review ${{ steps.cpr.outputs.pull-request-number }} --approve
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-merge PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
