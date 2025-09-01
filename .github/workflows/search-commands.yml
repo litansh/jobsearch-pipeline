@@ -71,6 +71,7 @@ jobs:
           python scripts/real_job_finder.py
           python scripts/add_known_jobs.py
           python scripts/real_verified_jobs.py
+          python scripts/israeli_job_sources.py
           python scripts/deduplicate_jobs.py
         elif [ "$SEARCH_TYPE" = "quick" ]; then
           echo "Running quick job search..."
