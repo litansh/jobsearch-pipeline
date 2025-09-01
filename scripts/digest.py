@@ -1,6 +1,8 @@
 import os, json, pathlib
 from dotenv import load_dotenv
 from scripts.utils import create_session, safe_get
+from scripts.job_state import job_state
+from scripts.telegram_bot import telegram_bot
 
 load_dotenv()
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -29,6 +31,7 @@ def send_telegram(text: str):
         print(text)
 
 def main():
+    # Load all scored jobs
     rows = []
     with open(SCORES, "r", encoding="utf-8") as f:
         for line in f:
@@ -36,17 +39,28 @@ def main():
                 rows.append(json.loads(line))
             except:
                 pass
+    
+    # Filter by score threshold
     rows = [r for r in rows if r.get("score",0) >= THRESHOLD]
-    rows = rows[:MAX_ITEMS]
-    if not rows:
-        send_telegram("No matches above threshold today. Try lowering SCORE_THRESHOLD.")
+    
+    # Filter out jobs that were already sent, applied to, or ignored
+    unsent_rows = job_state.get_unsent_jobs(rows)
+    
+    if not unsent_rows:
+        # Check if there were any jobs above threshold at all
+        if not rows:
+            send_telegram("No matches above threshold today. Try lowering SCORE_THRESHOLD.")
+        else:
+            print(f"[INFO] Found {len(rows)} jobs above threshold, but all were already sent/applied/ignored")
         return
-    lines = ["<b>Top job matches for today</b>"]
-    for r in rows:
-        age_info = f" [Day {r.get('age', 1)}]" if r.get('age') else ""
-        lines.append(f"• <b>{r['title']}</b> @ {r['company']} ({r.get('location','')}) — score {r['score']}{age_info}\n  {r['url']}\n  Why: {r['why_fit']}")
-    send_telegram("\n\n".join(lines))
-    print(f"[OK] Sent digest with {len(rows)} items.")
+    
+    # Limit to MAX_ITEMS
+    unsent_rows = unsent_rows[:MAX_ITEMS]
+    
+    # Send interactive digest using new telegram bot
+    telegram_bot.send_job_digest(unsent_rows)
+    
+    print(f"[OK] Sent {len(unsent_rows)} new jobs to Telegram (out of {len(rows)} total above threshold)")
 
 if __name__ == "__main__":
     main()
