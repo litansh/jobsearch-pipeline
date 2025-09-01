@@ -98,6 +98,19 @@ jobs:
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/digest.py
+        
+    - name: Send completion notification
+      if: github.event.client_payload.search_type != 'clean'
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python -c "
+from scripts.telegram_bot import telegram_bot
+search_type = '${{ github.event.client_payload.search_type }}'
+if search_type == 'full':
+    telegram_bot.send_message('✅ <b>Complete Job Search Finished!</b>\n\n🎯 Check above for new job opportunities with interactive buttons.')
+elif search_type == 'quick':
+    telegram_bot.send_message('✅ <b>Quick Search Finished!</b>\n\n🎯 Check above for new job opportunities from Greenhouse/Lever APIs.')
+"
 
     - name: Show job state summary
       run: |
