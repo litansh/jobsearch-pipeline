@@ -124,6 +124,7 @@ jobs:
       uses: peter-evans/create-pull-request@v6
       id: cpr
       with:
+        base: main
         branch: ${{ env.branch_name }}
         title: "🤖 Job state update"
         body: "Automated job state update"
