@@ -329,27 +329,12 @@ def get_research_based_jobs():
     """Get jobs from research-based knowledge of Israeli companies."""
     jobs = []
     
-    print("[INFO] Adding research-based DevOps leadership openings...")
+    print("[INFO] DISABLED: Research-based jobs were generating false positives")
+    print("[INFO] User feedback: checkmarx has no Head of DevOps, snyk has no DevOps Group Lead, riskified has no DevOps Director")
+    print("[INFO] Only using verified job sources to avoid fake listings")
     
-    for company, openings in ISRAELI_DEVOPS_OPENINGS.items():
-        for opening in openings:
-            job = {
-                "title": opening["title"],
-                "company": company,
-                "location": opening["location"],
-                "url": f"https://www.{company}.com/careers" if not company.endswith(".com") else f"https://{company}/careers",
-                "source": "market_research",
-                "posted_at": date.today().isoformat(),
-                "jd": f"{opening['description']} Requirements: {opening['requirements']}",
-                "id": job_id({
-                    "title": opening["title"],
-                    "company": company,
-                    "location": opening["location"],
-                    "url": f"https://www.{company}.com/careers"
-                })
-            }
-            jobs.append(job)
-            print(f"[RESEARCH] {opening['title']} @ {company} ({opening['location']})")
+    # DISABLED: All research jobs removed due to false positives
+    # These were generating job listings that don't actually exist
     
     return jobs
 
