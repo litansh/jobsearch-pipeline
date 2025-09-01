@@ -12,7 +12,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN","")
 TELEGRAM_CHAT = os.getenv("TELEGRAM_CHAT_ID","")
 
 THRESHOLD = float(os.getenv("SCORE_THRESHOLD","0.78"))
-MAX_ITEMS = int(os.getenv("DIGEST_MAX","10"))
+MAX_ITEMS = int(os.getenv("DIGEST_MAX","30"))  # Increased from 10 to 30
 
 def send_telegram(text: str):
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT:
