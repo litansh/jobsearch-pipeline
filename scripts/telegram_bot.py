@@ -142,9 +142,21 @@ class TelegramBot:
                 job_id = callback_data.replace("apply_", "")
                 job_state.mark_applied(job_id, job_title, job_company)
                 
+                # Create undo keyboard
+                undo_keyboard = {
+                    "inline_keyboard": [
+                        [
+                            {
+                                "text": "↩️ Undo (Mark as Not Applied)",
+                                "callback_data": f"undo_apply_{job_id}"
+                            }
+                        ]
+                    ]
+                }
+                
                 # Update message to show it's been applied to
                 new_text = f"✅ <b>APPLIED</b>\n<s>{job_title}</s>\n<s>🏢 {job_company}</s>\n\n💪 <i>Great choice! This job won't appear in future digests. Good luck with your application!</i>"
-                self.edit_message(message_id, new_text)
+                self.edit_message(message_id, new_text, reply_markup=undo_keyboard)
                 
                 # Send follow-up confirmation message
                 confirmation = f"✅ <b>Job Marked as Applied</b>\n\n"
@@ -157,9 +169,21 @@ class TelegramBot:
                 job_id = callback_data.replace("ignore_", "")
                 job_state.mark_ignored(job_id, job_title, job_company, "user_ignored")
                 
+                # Create undo keyboard
+                undo_keyboard = {
+                    "inline_keyboard": [
+                        [
+                            {
+                                "text": "↩️ Undo (Mark as Relevant)",
+                                "callback_data": f"undo_ignore_{job_id}"
+                            }
+                        ]
+                    ]
+                }
+                
                 # Update message to show it's been ignored
                 new_text = f"❌ <b>NOT RELEVANT</b>\n<s>{job_title}</s>\n<s>🏢 {job_company}</s>\n\n🎯 <i>Got it! I'll use this feedback to improve future job matches.</i>"
-                self.edit_message(message_id, new_text)
+                self.edit_message(message_id, new_text, reply_markup=undo_keyboard)
                 
                 # Send follow-up confirmation message
                 confirmation = f"❌ <b>Job Marked as Not Relevant</b>\n\n"
@@ -168,6 +192,30 @@ class TelegramBot:
                 confirmation += f"🤖 I'll use this feedback to better match your preferences in future searches!"
                 self.send_message(confirmation)
                 
+            elif callback_data.startswith("undo_apply_"):
+                job_id = callback_data.replace("undo_apply_", "")
+                success = job_state.remove_applied(job_id)
+                
+                if success:
+                    # Remove the undo button and show success
+                    new_text = f"↩️ <b>UNDONE</b>\n{job_title}\n🏢 {job_company}\n\n✅ <i>Removed from applied list. This job may appear in future digests again.</i>"
+                    self.edit_message(message_id, new_text)
+                    self.answer_callback_query(callback_query_id, "✅ Undone! Job removed from applied list")
+                else:
+                    self.answer_callback_query(callback_query_id, "❌ Could not undo - job not found in applied list")
+                    
+            elif callback_data.startswith("undo_ignore_"):
+                job_id = callback_data.replace("undo_ignore_", "")
+                success = job_state.remove_ignored(job_id)
+                
+                if success:
+                    # Remove the undo button and show success
+                    new_text = f"↩️ <b>UNDONE</b>\n{job_title}\n🏢 {job_company}\n\n✅ <i>Removed from ignored list. This job may appear in future digests again.</i>"
+                    self.edit_message(message_id, new_text)
+                    self.answer_callback_query(callback_query_id, "✅ Undone! Job removed from ignored list")
+                else:
+                    self.answer_callback_query(callback_query_id, "❌ Could not undo - job not found in ignored list")
+                
             else:
                 self.answer_callback_query(callback_query_id, "Unknown action")
                 
@@ -175,7 +223,7 @@ class TelegramBot:
             logger.error(f"Error handling callback: {e}")
             self.answer_callback_query(callback_query_id, "❌ Error processing request")
     
-    def edit_message(self, message_id: int, new_text: str):
+    def edit_message(self, message_id: int, new_text: str, reply_markup: Optional[Dict] = None):
         """Edit an existing message."""
         url = f"{self.base_url}/editMessageText"
         payload = {
@@ -184,6 +232,9 @@ class TelegramBot:
             "text": new_text,
             "parse_mode": "HTML"
         }
+        
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
         
         try:
             response = self.session.post(url, json=payload, timeout=20)
