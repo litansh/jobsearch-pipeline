@@ -283,26 +283,13 @@ def get_verified_company_jobs():
     """Get jobs from companies where we can verify actual openings exist."""
     jobs = []
     
-    print("[INFO] Adding only verified company job openings...")
+    print("[INFO] DISABLED: Verified company jobs were generating false positives")
+    print("[INFO] User feedback: Silverfort Head of Data Platform doesn't actually exist")
+    print("[INFO] Only using real API sources to avoid fake listings")
     
-    # Only include companies where we can verify actual openings exist
-    # These redirect to real company career pages
-    verified_openings = [
-        {
-            "title": "Head of Data Platform",
-            "company": "Silverfort", 
-            "location": "Tel Aviv, Israel",
-            "url": "https://www.silverfort.com/careers/",
-            "verified": "Based on LinkedIn search results - check their careers page"
-        },
-        {
-            "title": "VP Engineering",
-            "company": "FundGuard",
-            "location": "Tel Aviv, Israel",
-            "url": "https://www.fundguard.com/careers",
-            "verified": "Based on LinkedIn search results - check their careers page"
-        }
-    ]
+    # DISABLED: All "verified" jobs removed due to false positives
+    # These were generating job listings that don't actually exist
+    verified_openings = []
     
     for job_info in verified_openings:
         job = {
@@ -342,10 +329,13 @@ def get_job_board_aggregated_jobs():
     """Simulate getting jobs from job boards (since direct scraping is blocked)."""
     jobs = []
     
-    print("[INFO] Adding job board aggregated DevOps leadership roles...")
+    print("[INFO] DISABLED: Job board aggregated jobs were simulated/fake")
+    print("[INFO] Only using real API sources and manually verified positions")
     
-    # These represent real jobs that would be found on job boards like LinkedIn, Indeed, etc.
-    job_board_jobs = [
+    # DISABLED: These were simulated jobs, not real ones
+    job_board_jobs = []
+    
+    # Original fake jobs were: [
         {
             "title": "VP of Engineering Operations",
             "company": "stealth_startup",
