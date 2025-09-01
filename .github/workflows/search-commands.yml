@@ -1,0 +1,146 @@
+name: Telegram Search Commands
+
+on:
+  repository_dispatch:
+    types: [telegram_search_command]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  telegram-search:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Set up environment
+      run: |
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+        echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $GITHUB_ENV
+        echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
+        echo "NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}" >> $GITHUB_ENV
+        echo "NOTION_DB_ID=${{ secrets.NOTION_DB_ID }}" >> $GITHUB_ENV
+        echo "SCORE_THRESHOLD=0.50" >> $GITHUB_ENV
+        echo "DIGEST_MAX=30" >> $GITHUB_ENV
+        echo "JOB_MAX_AGE=14" >> $GITHUB_ENV
+        
+    - name: Create data directories
+      run: |
+        mkdir -p data/raw data/processed outputs
+
+    - name: Setup git for state persistence
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py setup-git
+
+    - name: Pull existing job state
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE  
+        python scripts/github_actions_helper.py pull
+
+    - name: Initialize state files
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py init
+
+    - name: Run job search based on command
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        SEARCH_TYPE="${{ github.event.client_payload.search_type }}"
+        
+        echo "Processing Telegram search command: $SEARCH_TYPE"
+        
+        if [ "$SEARCH_TYPE" = "full" ]; then
+          echo "Running comprehensive job search..."
+          python scripts/crawl.py
+          python scripts/real_job_finder.py
+          python scripts/add_known_jobs.py
+          python scripts/real_verified_jobs.py
+          python scripts/deduplicate_jobs.py
+        elif [ "$SEARCH_TYPE" = "quick" ]; then
+          echo "Running quick job search..."
+          python scripts/crawl.py
+          python scripts/deduplicate_jobs.py
+        elif [ "$SEARCH_TYPE" = "clean" ]; then
+          echo "Cleaning old jobs..."
+          python scripts/job_tracker.py clean
+        fi
+        
+    - name: Track job ages
+      if: github.event.client_payload.search_type != 'clean'
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/job_tracker.py update
+        
+    - name: Score jobs
+      if: github.event.client_payload.search_type != 'clean'
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/score.py
+        
+    - name: Send digest
+      if: github.event.client_payload.search_type != 'clean'
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/digest.py
+
+    - name: Show job state summary
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py summary
+
+    - name: Commit job state changes
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        BRANCH="telegram/search-$(date +'%Y%m%d-%H%M%S')"
+        git checkout -b $BRANCH
+        git add -A
+        git commit -m "🔍 Telegram search: ${{ github.event.client_payload.search_type }} - $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "No changes"
+        git push origin $BRANCH
+        echo "branch_name=$BRANCH" >> "$GITHUB_ENV"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      id: cpr
+      with:
+        base: main
+        branch: ${{ env.branch_name }}
+        title: "🔍 Telegram search: ${{ github.event.client_payload.search_type }}"
+        body: |
+          **Telegram Search Command**
+          
+          - **Search Type**: ${{ github.event.client_payload.search_type }}
+          - **Triggered By**: Telegram bot command
+          - **Timestamp**: ${{ github.event.client_payload.timestamp }}
+          
+          This search was triggered by a Telegram command and includes any new jobs found.
+        delete-branch: true
+        draft: false
+
+    - name: Auto-approve PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr review ${{ steps.cpr.outputs.pull-request-number }} --approve
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-merge PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
