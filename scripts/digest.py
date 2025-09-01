@@ -57,8 +57,28 @@ def main():
     # Limit to MAX_ITEMS
     unsent_rows = unsent_rows[:MAX_ITEMS]
     
+    # Send processing notification
+    if unsent_rows:
+        processing_msg = f"🔄 <b>Processing {len(unsent_rows)} new job match{'es' if len(unsent_rows) != 1 else ''}...</b>\n"
+        processing_msg += f"<i>Found {len(rows)} total jobs above threshold, sending {len(unsent_rows)} new ones</i>"
+        telegram_bot.send_message(processing_msg)
+    
     # Send interactive digest using new telegram bot
     telegram_bot.send_job_digest(unsent_rows)
+    
+    # Send completion summary
+    if unsent_rows:
+        summary_msg = f"✅ <b>Job Digest Complete!</b>\n\n"
+        summary_msg += f"📊 <b>Summary:</b>\n"
+        summary_msg += f"• {len(unsent_rows)} new jobs sent\n"
+        summary_msg += f"• {len(rows) - len(unsent_rows)} jobs already seen/processed\n"
+        summary_msg += f"• {len(rows)} total jobs above score threshold\n\n"
+        summary_msg += f"💡 <b>Next Steps:</b>\n"
+        summary_msg += f"• Click 🔗 <i>Apply Now</i> to open job applications\n"
+        summary_msg += f"• Click ✅ <i>Mark Applied</i> after applying\n"
+        summary_msg += f"• Click ❌ <i>Not Relevant</i> to hide irrelevant jobs\n\n"
+        summary_msg += f"🤖 I'll remember your choices and won't show these jobs again!"
+        telegram_bot.send_message(summary_msg)
     
     print(f"[OK] Sent {len(unsent_rows)} new jobs to Telegram (out of {len(rows)} total above threshold)")
 

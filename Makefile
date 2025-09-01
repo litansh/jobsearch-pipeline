@@ -72,6 +72,22 @@ webhook-server:  ## Start webhook server for Telegram callbacks (dev mode)
 webhook-poll:  ## Start polling mode for Telegram callbacks (alternative to webhook)
 	PYTHONPATH=. python scripts/telegram_bot.py poll
 
+# GitHub Actions helpers
+gh-setup:  ## Setup git config for GitHub Actions
+	PYTHONPATH=. python scripts/github_actions_helper.py setup-git
+
+gh-pull-state:  ## Pull job state from repository (for GitHub Actions)
+	PYTHONPATH=. python scripts/github_actions_helper.py pull
+
+gh-push-state:  ## Push job state to repository (for GitHub Actions)
+	PYTHONPATH=. python scripts/github_actions_helper.py push
+
+gh-init-state:  ## Initialize state files (for GitHub Actions)
+	PYTHONPATH=. python scripts/github_actions_helper.py init
+
+gh-summary:  ## Show job state summary (for GitHub Actions)
+	PYTHONPATH=. python scripts/github_actions_helper.py summary
+
 # Development commands
 lint:  ## Run linting checks
 	flake8 scripts/ --max-line-length=120 --ignore=E203,W503

@@ -134,31 +134,46 @@ class TelegramBot:
                             message_id: int, job_title: str = "", job_company: str = ""):
         """Handle button press callbacks."""
         try:
+            # Send processing message first
+            self.answer_callback_query(callback_query_id, "🔄 Processing...")
+            
             # Parse callback data
             if callback_data.startswith("apply_"):
                 job_id = callback_data.replace("apply_", "")
                 job_state.mark_applied(job_id, job_title, job_company)
                 
                 # Update message to show it's been applied to
-                new_text = f"✅ <b>APPLIED</b>\n<s>{job_title} @ {job_company}</s>"
+                new_text = f"✅ <b>APPLIED</b>\n<s>{job_title}</s>\n<s>🏢 {job_company}</s>\n\n💪 <i>Great choice! This job won't appear in future digests. Good luck with your application!</i>"
                 self.edit_message(message_id, new_text)
-                self.answer_callback_query(callback_query_id, "✅ Marked as applied!")
+                
+                # Send follow-up confirmation message
+                confirmation = f"✅ <b>Job Marked as Applied</b>\n\n"
+                confirmation += f"📝 <b>{job_title}</b> at <b>{job_company}</b> has been marked as applied.\n\n"
+                confirmation += f"🎯 This job will no longer appear in your daily digest.\n"
+                confirmation += f"🚀 Best of luck with your application!"
+                self.send_message(confirmation)
                 
             elif callback_data.startswith("ignore_"):
                 job_id = callback_data.replace("ignore_", "")
                 job_state.mark_ignored(job_id, job_title, job_company, "user_ignored")
                 
                 # Update message to show it's been ignored
-                new_text = f"❌ <b>IGNORED</b>\n<s>{job_title} @ {job_company}</s>"
+                new_text = f"❌ <b>NOT RELEVANT</b>\n<s>{job_title}</s>\n<s>🏢 {job_company}</s>\n\n🎯 <i>Got it! I'll use this feedback to improve future job matches.</i>"
                 self.edit_message(message_id, new_text)
-                self.answer_callback_query(callback_query_id, "❌ Marked as not relevant")
+                
+                # Send follow-up confirmation message
+                confirmation = f"❌ <b>Job Marked as Not Relevant</b>\n\n"
+                confirmation += f"📝 <b>{job_title}</b> at <b>{job_company}</b> has been marked as not relevant.\n\n"
+                confirmation += f"🎯 This job will no longer appear in your daily digest.\n"
+                confirmation += f"🤖 I'll use this feedback to better match your preferences in future searches!"
+                self.send_message(confirmation)
                 
             else:
                 self.answer_callback_query(callback_query_id, "Unknown action")
                 
         except Exception as e:
             logger.error(f"Error handling callback: {e}")
-            self.answer_callback_query(callback_query_id, "Error processing request")
+            self.answer_callback_query(callback_query_id, "❌ Error processing request")
     
     def edit_message(self, message_id: int, new_text: str):
         """Edit an existing message."""
