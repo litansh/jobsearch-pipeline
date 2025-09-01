@@ -1,1 +1,1 @@
-worker: python start_telegram_bot_railway.py
+worker: python test_railway_vars.py
