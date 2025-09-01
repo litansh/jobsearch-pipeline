@@ -20,51 +20,94 @@ WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")  # Personal Access Token
 GITHUB_REPO = "litansh/jobsearch-pipeline"
 
-def trigger_github_sync_workflow(callback_data, job_title, job_company):
-    """Trigger GitHub Actions workflow to sync job state."""
+def update_github_job_state(callback_data, job_title, job_company):
+    """Directly update job state in GitHub repository via API."""
     if not GITHUB_TOKEN:
         print("[WEBHOOK] No GITHUB_TOKEN configured, skipping GitHub sync")
         return False
     
-    # Determine action type
-    if callback_data.startswith("apply_"):
-        action = "applied"
-        job_id = callback_data.replace("apply_", "")
-    elif callback_data.startswith("ignore_"):
-        action = "ignored"
-        job_id = callback_data.replace("ignore_", "")
-    elif callback_data.startswith("undo_"):
-        action = "undo"
-        job_id = callback_data.replace("undo_apply_", "").replace("undo_ignore_", "")
-    else:
-        return False
-    
-    # Trigger workflow_dispatch on sync-job-state workflow
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/sync-job-state.yml/dispatches"
-    
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-    }
-    
-    payload = {
-        "ref": "main",
-        "inputs": {
-            "action": action,
-            "job_id": job_id,
-            "job_title": job_title,
-            "job_company": job_company
-        }
-    }
-    
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        # Get current job_state.json from GitHub
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/data/processed/job_state.json"
+        headers = {
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            # File exists, get current content
+            file_data = response.json()
+            import base64
+            current_content = base64.b64decode(file_data['content']).decode('utf-8')
+            current_state = json.loads(current_content)
+            sha = file_data['sha']
+        else:
+            # File doesn't exist, create new
+            current_state = {
+                "applied": {},
+                "ignored": {},
+                "sent_to_telegram": {},
+                "last_updated": "2025-09-01"
+            }
+            sha = None
+        
+        # Apply the action to the state
+        if callback_data.startswith("apply_"):
+            job_id = callback_data.replace("apply_", "")
+            current_state["applied"][job_id] = {
+                "date": "2025-09-01",
+                "title": job_title,
+                "company": job_company
+            }
+            action_desc = f"marked {job_title} @ {job_company} as applied"
+            
+        elif callback_data.startswith("ignore_"):
+            job_id = callback_data.replace("ignore_", "")
+            current_state["ignored"][job_id] = {
+                "date": "2025-09-01", 
+                "title": job_title,
+                "company": job_company,
+                "reason": "user_ignored"
+            }
+            action_desc = f"marked {job_title} @ {job_company} as not relevant"
+            
+        elif callback_data.startswith("undo_apply_"):
+            job_id = callback_data.replace("undo_apply_", "")
+            if job_id in current_state["applied"]:
+                del current_state["applied"][job_id]
+            action_desc = f"undid applied marking for {job_title} @ {job_company}"
+            
+        elif callback_data.startswith("undo_ignore_"):
+            job_id = callback_data.replace("undo_ignore_", "")
+            if job_id in current_state["ignored"]:
+                del current_state["ignored"][job_id]
+            action_desc = f"undid ignore marking for {job_title} @ {job_company}"
+        else:
+            return False
+        
+        # Update the file in GitHub
+        new_content = json.dumps(current_state, indent=2, ensure_ascii=False)
+        encoded_content = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+        
+        commit_data = {
+            "message": f"🔘 Telegram sync: {action_desc}",
+            "content": encoded_content,
+            "branch": "main"
+        }
+        
+        if sha:
+            commit_data["sha"] = sha
+        
+        response = requests.put(url, headers=headers, json=commit_data, timeout=10)
         response.raise_for_status()
-        print(f"[WEBHOOK] Triggered GitHub sync workflow for {action} action on {job_title}")
+        
+        print(f"[WEBHOOK] ✅ Successfully synced to GitHub: {action_desc}")
         return True
+        
     except Exception as e:
-        print(f"[WEBHOOK] Failed to trigger GitHub workflow: {e}")
+        print(f"[WEBHOOK] ❌ Failed to sync to GitHub: {e}")
         return False
 
 @app.route("/webhook", methods=["POST"])
@@ -103,15 +146,15 @@ def webhook():
                 job_title, job_company
             )
             
-            # Trigger GitHub Actions workflow to sync job state
+            # Directly update GitHub job state file
             try:
-                success = trigger_github_sync_workflow(callback_data, job_title, job_company)
+                success = update_github_job_state(callback_data, job_title, job_company)
                 if success:
-                    print("[WEBHOOK] ✅ Triggered GitHub Actions to sync job state")
+                    print("[WEBHOOK] ✅ Job state synced directly to GitHub")
                 else:
-                    print("[WEBHOOK] ❌ Failed to trigger GitHub Actions sync")
+                    print("[WEBHOOK] ❌ Failed to sync job state to GitHub")
             except Exception as e:
-                print(f"[WEBHOOK] Error triggering GitHub sync: {e}")
+                print(f"[WEBHOOK] Error syncing to GitHub: {e}")
         
         return jsonify({"ok": True})
         
