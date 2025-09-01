@@ -1,1 +1,1 @@
-worker: python start_telegram_bot.py
+worker: python start_telegram_bot_railway.py
