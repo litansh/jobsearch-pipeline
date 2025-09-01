@@ -14,6 +14,31 @@
       "date": "2025-09-01",
       "title": "Head of DevOps",
       "company": "Transmit Security"
+    },
+    "b80e3d1839ab601c1cc3": {
+      "date": "2025-09-01",
+      "title": "Platform & Infrastructure Director",
+      "company": "Pango"
+    },
+    "a6137165add7148d5bfa": {
+      "date": "2025-09-01",
+      "title": "Head of DevOps",
+      "company": "Riverside.fm"
+    },
+    "2e744e7a6e66209f5e08": {
+      "date": "2025-09-01",
+      "title": "Site Reliability Engineering Manager",
+      "company": "jfrog"
+    },
+    "02a0b8de01479cf5a3ac": {
+      "date": "2025-09-01",
+      "title": "Site Reliability Engineering Manager",
+      "company": "job"
+    },
+    "327e82ac29148a2ba264": {
+      "date": "2025-09-01",
+      "title": "Director of Infrastructure",
+      "company": "Paragon"
     }
   },
   "ignored": {
@@ -22,13 +47,20 @@
       "title": "Head of DevOps",
       "company": "Vicarius",
       "reason": "user_ignored"
-    }
-  },
-  "sent_to_telegram": {
+    },
     "test_job_12345": {
       "date": "2025-09-01",
-      "sent_count": 1
+      "title": "Test DevOps Manager",
+      "company": "TestCompany",
+      "reason": "user_ignored"
+    },
+    "d333c044b143438e4ff4": {
+      "date": "2025-09-01",
+      "title": "Engineering Manager",
+      "company": "bigid",
+      "reason": "user_ignored"
     }
   },
+  "sent_to_telegram": {},
   "last_updated": "2025-09-01"
 }
