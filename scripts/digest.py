@@ -51,6 +51,24 @@ def main():
         if not rows:
             send_telegram("No matches above threshold today. Try lowering SCORE_THRESHOLD.")
         else:
+            # Send notification about no new jobs
+            message = f"✅ <b>Daily Job Search Complete</b>\n\n"
+            message += f"📊 Found {len(rows)} job{'s' if len(rows) != 1 else ''} above threshold, but all already processed:\n"
+            
+            # Count by status
+            applied_count = sum(1 for job in rows if job_state.is_applied(job.get('id', '')))
+            ignored_count = sum(1 for job in rows if job_state.is_ignored(job.get('id', '')))
+            sent_count = sum(1 for job in rows if job_state.was_sent_to_telegram(job.get('id', '')))
+            
+            if applied_count > 0:
+                message += f"• ✅ {applied_count} already applied to\n"
+            if ignored_count > 0:
+                message += f"• ❌ {ignored_count} marked as not relevant\n"
+            if sent_count > 0:
+                message += f"• 📤 {sent_count} previously sent\n"
+            
+            message += f"\n🔍 <i>No new opportunities today - I'll keep searching!</i>"
+            send_telegram(message)
             print(f"[INFO] Found {len(rows)} jobs above threshold, but all were already sent/applied/ignored")
         return
     

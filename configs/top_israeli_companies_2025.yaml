@@ -1,0 +1,315 @@
+# Top 50 Israeli Startups and Companies for DevOps Leadership Positions (2025)
+# Based on latest rankings, funding rounds, and best places to work lists
+
+top_startups_2025:
+  # Hot AI/Tech Startups (2024-2025)
+  - name: "astrix-security"
+    sector: "cybersecurity"
+    description: "Non-human identity security"
+    greenhouse: true
+    
+  - name: "finaloop" 
+    sector: "fintech"
+    description: "AI-driven financial reporting for e-commerce"
+    lever: true
+    
+  - name: "lakefs"
+    sector: "data-infrastructure" 
+    description: "Data versioning for ML/AI"
+    greenhouse: true
+    
+  - name: "phasev"
+    sector: "healthtech"
+    description: "AI-powered clinical drug development"
+    
+  - name: "qbiq"
+    sector: "proptech"
+    description: "Generative AI for architectural design"
+    
+  - name: "qodo"
+    sector: "devtools"
+    description: "AI-based code writing and testing"
+    greenhouse: true
+    
+  - name: "spines"
+    sector: "publishing"
+    description: "AI-powered publishing platform"
+    
+  - name: "tres-finance"
+    sector: "fintech"
+    description: "Digital asset accounting and compliance"
+    
+  - name: "zafran-security"
+    sector: "cybersecurity" 
+    description: "Proactive vulnerability management"
+    
+  - name: "zenity"
+    sector: "cybersecurity"
+    description: "AI-based cybersecurity for AI environments"
+    greenhouse: true
+
+  # Established High-Growth Startups
+  - name: "armis"
+    sector: "cybersecurity"
+    description: "IoT security platform"
+    greenhouse: true
+    
+  - name: "orca-security"
+    sector: "cybersecurity"
+    description: "Cloud security platform"
+    lever: true
+    
+  - name: "lightricks"
+    sector: "creative-tech"
+    description: "AI-powered creative tools"
+    comeet: true
+    
+  - name: "lemonade"
+    sector: "insurtech"
+    description: "AI-powered insurance"
+    greenhouse: true
+    
+  - name: "fundguard"
+    sector: "fintech"
+    description: "Investment management platform"
+    
+  - name: "transmit-security"
+    sector: "cybersecurity"
+    description: "Identity and access management"
+    lever: true
+    
+  - name: "vicarius"
+    sector: "cybersecurity"
+    description: "Vulnerability management"
+    greenhouse: true
+    
+  - name: "finout"
+    sector: "fintech"
+    description: "Cloud cost management"
+    
+  - name: "riverside-fm"
+    sector: "media-tech"
+    description: "Remote recording platform"
+    
+  - name: "paragon"
+    sector: "integration"
+    description: "Embedded integrations platform"
+
+best_companies_2025:
+  # Top Employers (Dun's 100 + Times of Israel 2025)
+  - name: "nvidia-israel"
+    sector: "semiconductors"
+    description: "AI chip leader"
+    greenhouse: true
+    career_page: "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite"
+    
+  - name: "google-israel"
+    sector: "tech-giant"
+    description: "Search and cloud leader"
+    career_page: "https://careers.google.com/locations/israel/"
+    
+  - name: "microsoft-israel"
+    sector: "tech-giant"
+    description: "Cloud and software leader"
+    career_page: "https://careers.microsoft.com/professionals/us/en/l-israel"
+    
+  - name: "check-point"
+    sector: "cybersecurity"
+    description: "Firewall and security leader"
+    greenhouse: true
+    
+  - name: "applied-materials-israel"
+    sector: "semiconductors"
+    description: "Semiconductor equipment"
+    
+  - name: "sap-israel"
+    sector: "enterprise-software"
+    description: "ERP and business software"
+    career_page: "https://jobs.sap.com/search/?q=&locationsearch=israel"
+    
+  - name: "elbit-systems"
+    sector: "defense"
+    description: "Defense technology"
+    
+  - name: "cyberark"
+    sector: "cybersecurity"
+    description: "Privileged access management"
+    greenhouse: true
+    
+  - name: "israel-aerospace-industries"
+    sector: "aerospace-defense"
+    description: "Aerospace and defense"
+    
+  - name: "direct-insurance"
+    sector: "insurtech"
+    description: "Digital insurance"
+
+  # Established Israeli Tech Giants
+  - name: "monday"
+    sector: "productivity"
+    description: "Work OS platform"
+    comeet: true
+    
+  - name: "wix"
+    sector: "web-platforms"
+    description: "Website builder platform"
+    comeet: true
+    smartrecruiters: true
+    
+  - name: "outbrain"
+    sector: "adtech"
+    description: "Content discovery platform"
+    comeet: true
+    smartrecruiters: true
+    
+  - name: "gong"
+    sector: "sales-tech"
+    description: "Revenue intelligence"
+    comeet: true
+    smartrecruiters: true
+    
+  - name: "fiverr"
+    sector: "gig-economy"
+    description: "Freelance marketplace"
+    comeet: true
+    
+  - name: "ironSource"
+    sector: "mobile-tech"
+    description: "Mobile app monetization"
+    comeet: true
+    
+  - name: "nice"
+    sector: "enterprise-software"
+    description: "Customer experience solutions"
+    greenhouse: true
+    comeet: true
+    
+  - name: "walkme"
+    sector: "digital-adoption"
+    description: "Digital adoption platform"
+    comeet: true
+    
+  - name: "checkmarx"
+    sector: "application-security"
+    description: "Application security testing"
+    comeet: true
+    
+  - name: "riskified"
+    sector: "fintech"
+    description: "E-commerce fraud prevention"
+    greenhouse: true
+    comeet: true
+
+  # High-Potential Scale-ups
+  - name: "rapyd"
+    sector: "fintech"
+    description: "Fintech-as-a-Service platform"
+    
+  - name: "snyk"
+    sector: "developer-security"
+    description: "Developer security platform"
+    greenhouse: true
+    
+  - name: "redis"
+    sector: "database"
+    description: "In-memory database"
+    greenhouse: true
+    
+  - name: "elastic"
+    sector: "search-analytics"
+    description: "Search and analytics"
+    greenhouse: true
+    
+  - name: "datadog"
+    sector: "monitoring"
+    description: "Monitoring and security"
+    greenhouse: true
+    
+  - name: "zscaler"
+    sector: "cloud-security"
+    description: "Cloud security platform"
+    greenhouse: true
+    
+  - name: "jfrog"
+    sector: "devops-tools"
+    description: "DevOps and MLOps platform"
+    greenhouse: true
+    
+  - name: "taboola"
+    sector: "adtech"
+    description: "Content discovery platform"
+    greenhouse: true
+    
+  - name: "payoneer"
+    sector: "fintech"
+    description: "Global payment platform"
+    greenhouse: true
+    
+  - name: "pagaya"
+    sector: "fintech"
+    description: "AI-driven financial services"
+    greenhouse: true
+    
+  - name: "via"
+    sector: "mobility"
+    description: "Transit technology"
+    greenhouse: true
+
+# Integration mapping for existing job sources
+integration_mapping:
+  greenhouse_companies:
+    - astrix-security
+    - lakefs  
+    - qodo
+    - zenity
+    - armis
+    - lemonade
+    - vicarius
+    - nvidia-israel
+    - check-point
+    - cyberark
+    - nice
+    - riskified
+    - snyk
+    - redis
+    - elastic
+    - datadog
+    - zscaler
+    - jfrog
+    - taboola
+    - payoneer
+    - pagaya
+    - via
+    
+  lever_companies:
+    - finaloop
+    - orca-security
+    - transmit-security
+    
+  comeet_companies:
+    - lightricks
+    - monday
+    - wix
+    - outbrain
+    - gong
+    - fiverr
+    - ironSource
+    - nice
+    - walkme
+    - checkmarx
+    - riskified
+    
+  smartrecruiters_companies:
+    - wix
+    - outbrain
+    - gong
+    
+  career_pages:
+    - url: "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite"
+      company: "nvidia-israel"
+    - url: "https://careers.google.com/locations/israel/"  
+      company: "google-israel"
+    - url: "https://careers.microsoft.com/professionals/us/en/l-israel"
+      company: "microsoft-israel"
+    - url: "https://jobs.sap.com/search/?q=&locationsearch=israel"
+      company: "sap-israel"

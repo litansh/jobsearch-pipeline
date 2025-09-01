@@ -172,10 +172,10 @@ def search_comeet_companies():
     jobs = []
     session = create_session()
     
-    # Israeli companies using Comeet
+    # Israeli companies using Comeet (expanded list)
     comeet_companies = [
         "monday", "wix", "outbrain", "gong", "cyberark", "checkmarx",
-        "riskified", "walkme", "fiverr", "ironSource", "nice"
+        "riskified", "walkme", "fiverr", "ironSource", "nice", "lightricks"
     ]
     
     print(f"[COMEET] Searching {len(comeet_companies)} companies using Comeet ATS...")

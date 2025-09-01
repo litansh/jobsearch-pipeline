@@ -80,28 +80,43 @@ titles:
 sources:
   greenhouse:
     companies:
-      # Israeli Companies
-      - riskified           # Riskified - DevOps Security roles
-      - jfrog               # JFrog - DevOps Team Lead roles  
-      - taboola             # Taboola - Israeli adtech company
-      - nice                # NICE Systems - Israeli enterprise software
-      - via                 # Via - Israeli mobility/transportation
-      - mobility            # Mobility company
-      - payoneer            # Payoneer - Israeli fintech (has DevOps roles)
-      - pagaya              # Pagaya - Israeli AI/fintech
+      # Top Israeli Startups 2025
+      - astrix-security     # Non-human identity security
+      - lakefs              # Data versioning for ML/AI
+      - qodo                # AI-based code writing and testing  
+      - zenity              # AI-based cybersecurity
+      - armis               # IoT security platform
+      - lemonade            # AI-powered insurance
+      - vicarius            # Vulnerability management
+      - nvidia-israel       # AI chip leader (#1 best place to work)
+      - check-point         # Firewall and security leader
+      - cyberark            # Privileged access management
+      
+      # Established Israeli Tech Companies
+      - riskified           # E-commerce fraud prevention
+      - jfrog               # DevOps and MLOps platform
+      - taboola             # Content discovery platform
+      - nice                # Customer experience solutions
+      - via                 # Transit technology
+      - payoneer            # Global payment platform
+      - pagaya              # AI-driven financial services
+      
       # Global Companies with Israeli Offices  
-      - snyk                # Snyk - Security/DevOps company
-      - redis               # Redis - Infrastructure company
-      - solarwinds          # SolarWinds - Infrastructure company
-      - elastic             # Elastic - Search/observability
-      - mongodb             # MongoDB - Database company
-      - datadog             # Datadog - Monitoring/observability
-      - zscaler             # Zscaler - Cloud security (has DevOps roles)
+      - snyk                # Developer security platform
+      - redis               # In-memory database
+      - elastic             # Search and analytics
+      - datadog             # Monitoring and security
+      - zscaler             # Cloud security platform
+      - solarwinds          # Infrastructure company
+      - mongodb             # Database company
       - okta                # Okta - Identity management
       - dropbox             # Dropbox - Cloud storage
   lever:
     companies:
       - spotify             # Spotify - Has Israeli R&D
+      - finaloop            # AI-driven financial reporting
+      - orca-security       # Cloud security platform
+      - transmit-security   # Identity and access management
   company_pages: []         # add direct JSON/RSS endpoints if you have
   
   # Additional Israeli job sources
@@ -116,9 +131,24 @@ sources:
     
     apis:
       comeet:
-        companies: ["monday", "wix", "outbrain", "gong", "cyberark", "checkmarx", "riskified", "walkme", "fiverr", "ironSource", "nice"]
+        companies: ["monday", "wix", "outbrain", "gong", "cyberark", "checkmarx", "riskified", "walkme", "fiverr", "ironSource", "nice", "lightricks"]
       smartrecruiters:
         companies: ["wix", "outbrain", "monday", "gong", "cyberark"]
+        
+    # Top Israeli Companies Career Pages
+    career_pages:
+      - url: "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite"
+        company: "nvidia-israel"
+        type: "workday"
+      - url: "https://careers.google.com/locations/israel/"
+        company: "google-israel"
+        type: "json"
+      - url: "https://careers.microsoft.com/professionals/us/en/l-israel"
+        company: "microsoft-israel"
+        type: "html"
+      - url: "https://jobs.sap.com/search/?q=&locationsearch=israel"
+        company: "sap-israel"
+        type: "html"
       
     vc_portfolios:
       bessemer: ["monday", "wix", "fiverr", "lightricks"]
