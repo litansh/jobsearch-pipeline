@@ -154,8 +154,11 @@ class TelegramBot:
                     ]
                 }
                 
+                logger.info(f"Created undo keyboard for job {job_id}: {undo_keyboard}")
+                
                 # Update message to show it's been applied to
                 new_text = f"✅ <b>APPLIED</b>\n<s>{job_title}</s>\n<s>🏢 {job_company}</s>\n\n💪 <i>Great choice! This job won't appear in future digests. Good luck with your application!</i>"
+                logger.info(f"Editing message {message_id} with undo keyboard")
                 self.edit_message(message_id, new_text, reply_markup=undo_keyboard)
                 
                 # Send follow-up confirmation message
@@ -239,8 +242,10 @@ class TelegramBot:
         try:
             response = self.session.post(url, json=payload, timeout=20)
             response.raise_for_status()
+            logger.info(f"Successfully edited message {message_id}")
         except Exception as e:
-            logger.error(f"Failed to edit message: {e}")
+            logger.error(f"Failed to edit message {message_id}: {e}")
+            logger.error(f"Payload was: {payload}")
     
     def answer_callback_query(self, callback_query_id: str, text: str):
         """Answer a callback query (show notification to user)."""
