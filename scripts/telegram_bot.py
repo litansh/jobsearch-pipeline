@@ -13,11 +13,14 @@ from scripts.utils import create_session
 from scripts.job_state import job_state
 import urllib.parse
 from datetime import timedelta
+import requests
 
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT = os.getenv("TELEGRAM_CHAT_ID", "")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_REPO = "litansh/jobsearch-pipeline"
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -161,12 +164,15 @@ class TelegramBot:
                 logger.info(f"Editing message {message_id} with undo keyboard")
                 self.edit_message(message_id, new_text, reply_markup=undo_keyboard)
                 
+                # Trigger GitHub sync via repository dispatch
+                self.trigger_github_sync("applied", job_id, job_title, job_company)
+                
                 # Send follow-up confirmation message
                 confirmation = f"✅ <b>Job Marked as Applied</b>\n\n"
                 confirmation += f"📝 <b>{job_title}</b> at <b>{job_company}</b> has been marked as applied.\n\n"
                 confirmation += f"🎯 This job will no longer appear in your daily digest.\n"
                 confirmation += f"🚀 Best of luck with your application!\n\n"
-                confirmation += f"💡 <i>Tip: Run 'make gh-push-state' to sync this change to GitHub Actions</i>"
+                confirmation += f"🤖 <i>Automatically syncing with GitHub Actions...</i>"
                 self.send_message(confirmation)
                 
             elif callback_data.startswith("ignore_"):
@@ -189,12 +195,15 @@ class TelegramBot:
                 new_text = f"❌ <b>NOT RELEVANT</b>\n<s>{job_title}</s>\n<s>🏢 {job_company}</s>\n\n🎯 <i>Got it! I'll use this feedback to improve future job matches.</i>"
                 self.edit_message(message_id, new_text, reply_markup=undo_keyboard)
                 
+                # Trigger GitHub sync via repository dispatch  
+                self.trigger_github_sync("ignored", job_id, job_title, job_company)
+                
                 # Send follow-up confirmation message
                 confirmation = f"❌ <b>Job Marked as Not Relevant</b>\n\n"
                 confirmation += f"📝 <b>{job_title}</b> at <b>{job_company}</b> has been marked as not relevant.\n\n"
                 confirmation += f"🎯 This job will no longer appear in your daily digest.\n"
                 confirmation += f"🤖 I'll use this feedback to better match your preferences in future searches!\n\n"
-                confirmation += f"💡 <i>Tip: Run 'make gh-push-state' to sync this change to GitHub Actions</i>"
+                confirmation += f"🤖 <i>Automatically syncing with GitHub Actions...</i>"
                 self.send_message(confirmation)
                 
             elif callback_data.startswith("undo_apply_"):
@@ -263,6 +272,39 @@ class TelegramBot:
             response.raise_for_status()
         except Exception as e:
             logger.error(f"Failed to answer callback query: {e}")
+    
+    def trigger_github_sync(self, action: str, job_id: str, job_title: str, job_company: str):
+        """Trigger GitHub repository dispatch to sync job state."""
+        if not GITHUB_TOKEN:
+            logger.warning("No GITHUB_TOKEN configured, skipping GitHub sync")
+            return False
+        
+        try:
+            url = f"https://api.github.com/repos/{GITHUB_REPO}/dispatches"
+            headers = {
+                "Authorization": f"Bearer {GITHUB_TOKEN}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            payload = {
+                "event_type": "telegram_job_action",
+                "client_payload": {
+                    "action": action,
+                    "job_id": job_id,
+                    "job_title": job_title,
+                    "job_company": job_company
+                }
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=10)
+            response.raise_for_status()
+            
+            logger.info(f"Successfully triggered GitHub sync: {action} for {job_title}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to trigger GitHub sync: {e}")
+            return False
     
     def set_webhook(self, webhook_url: str):
         """Set webhook URL for receiving updates."""

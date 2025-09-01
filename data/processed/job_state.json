@@ -9,6 +9,11 @@
       "date": "2025-09-01",
       "title": "Director of Engineering",
       "company": "Zenity"
+    },
+    "f0874504085f7ec05030": {
+      "date": "2025-09-01",
+      "title": "Head of DevOps",
+      "company": "Transmit Security"
     }
   },
   "ignored": {
@@ -20,19 +25,7 @@
     }
   },
   "sent_to_telegram": {
-    "b80e3d1839ab601c1cc3": {
-      "date": "2025-09-01",
-      "sent_count": 1
-    },
-    "f0874504085f7ec05030": {
-      "date": "2025-09-01",
-      "sent_count": 1
-    },
-    "02a0b8de01479cf5a3ac": {
-      "date": "2025-09-01",
-      "sent_count": 1
-    },
-    "327e82ac29148a2ba264": {
+    "test_job_12345": {
       "date": "2025-09-01",
       "sent_count": 1
     }
