@@ -335,50 +335,13 @@ def get_job_board_aggregated_jobs():
     # DISABLED: These were simulated jobs, not real ones
     job_board_jobs = []
     
-    # Original fake jobs were: [
-        {
-            "title": "VP of Engineering Operations",
-            "company": "stealth_startup",
-            "location": "Tel Aviv, Israel",
-            "description": "Lead engineering operations for stealth-mode startup backed by top VCs.",
-            "source": "linkedin_style"
-        },
-        {
-            "title": "Head of DevOps & Infrastructure", 
-            "company": "fintech_startup",
-            "location": "Herzliya, Israel",
-            "description": "Build DevOps culture at fast-growing fintech startup.",
-            "source": "indeed_style"
-        },
-        {
-            "title": "DevOps Director",
-            "company": "enterprise_software",
-            "location": "Jerusalem, Israel", 
-            "description": "Director role at enterprise software company serving Fortune 500.",
-            "source": "glassdoor_style"
-        },
-        {
-            "title": "Platform Group Lead",
-            "company": "cloud_security",
-            "location": "Raanana, Israel",
-            "description": "Lead platform group at cloud security unicorn.",
-            "source": "angel_list"
-        },
-        {
-            "title": "Head of Platform",
-            "company": "ai_startup",
-            "location": "Tel Aviv, Israel",
-            "description": "Head platform engineering at AI startup with $100M+ funding.",
-            "source": "linkedin_style"
-        },
-        {
-            "title": "DevOps Group Lead",
-            "company": "mobility_company",
-            "location": "Jerusalem, Israel",
-            "description": "Lead DevOps group at autonomous vehicle technology company.",
-            "source": "indeed_style"
-        }
-    ]
+    # Original fake jobs were removed:
+    # - VP of Engineering Operations @ stealth_startup
+    # - Head of DevOps & Infrastructure @ fintech_startup  
+    # - DevOps Director @ enterprise_software
+    # - Platform Group Lead @ cloud_security
+    # - Head of Platform @ ai_startup
+    # - DevOps Group Lead @ mobility_company
     
     for job_info in job_board_jobs:
         job = {
