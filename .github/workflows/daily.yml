@@ -37,11 +37,50 @@ jobs:
     - name: Create data directories
       run: |
         mkdir -p data/raw data/processed outputs
-        
-    - name: Crawl jobs
+
+    # NEW: State persistence setup
+    - name: Setup git for state persistence
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py setup-git
+
+    - name: Pull existing job state
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE  
+        python scripts/github_actions_helper.py pull
+
+    - name: Initialize state files
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py init
+
+    # COMPREHENSIVE JOB SEARCH (instead of just crawl.py)
+    - name: Search Greenhouse/Lever APIs
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/crawl.py
+        
+    - name: Search comprehensive job sources
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/real_job_finder.py
+        
+    - name: Add manually verified jobs
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/add_known_jobs.py
+
+    - name: Search verified real positions
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/real_verified_jobs.py
+        
+    # END COMPREHENSIVE SEARCH
+        
+    - name: Deduplicate and filter jobs
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/deduplicate_jobs.py
         
     - name: Track job ages
       run: |
@@ -63,3 +102,14 @@ jobs:
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/notion_writer.py
+
+    # NEW: State persistence save
+    - name: Show job state summary
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py summary
+
+    - name: Push updated job state
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py push
