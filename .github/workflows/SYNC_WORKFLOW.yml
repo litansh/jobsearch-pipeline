@@ -1,24 +1,8 @@
 name: Sync Job State
 
 on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Action performed (applied/ignored/undo)'
-        required: true
-        type: string
-      job_id:
-        description: 'Job ID'
-        required: true
-        type: string
-      job_title:
-        description: 'Job title'
-        required: false
-        type: string
-      job_company:
-        description: 'Job company'
-        required: false
-        type: string
+  repository_dispatch:
+    types: [telegram_job_action]
 
 permissions:
   contents: write
@@ -66,12 +50,12 @@ jobs:
     - name: Apply job state change
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
-        ACTION="${{ github.event.inputs.action }}"
-        JOB_ID="${{ github.event.inputs.job_id }}"
-        JOB_TITLE="${{ github.event.inputs.job_title }}"
-        JOB_COMPANY="${{ github.event.inputs.job_company }}"
+        ACTION="${{ github.event.client_payload.action }}"
+        JOB_ID="${{ github.event.client_payload.job_id }}"
+        JOB_TITLE="${{ github.event.client_payload.job_title }}"
+        JOB_COMPANY="${{ github.event.client_payload.job_company }}"
         
-        echo "Processing: $ACTION for job $JOB_ID ($JOB_TITLE @ $JOB_COMPANY)"
+        echo "Processing Telegram action: $ACTION for job $JOB_ID ($JOB_TITLE @ $JOB_COMPANY)"
         
         if [ "$ACTION" = "applied" ]; then
           python scripts/job_state.py applied "$JOB_ID"
@@ -98,14 +82,14 @@ jobs:
       with:
         base: main
         branch: ${{ env.branch_name }}
-        title: "🔘 Telegram job state sync: ${{ github.event.inputs.action }}"
+        title: "🔘 Telegram job state sync: ${{ github.event.client_payload.action }}"
         body: |
           **Telegram Button Action Sync**
           
-          - **Action**: ${{ github.event.inputs.action }}
-          - **Job**: ${{ github.event.inputs.job_title }} @ ${{ github.event.inputs.job_company }}
-          - **Job ID**: ${{ github.event.inputs.job_id }}
-          - **Triggered**: Automatically from Telegram webhook
+          - **Action**: ${{ github.event.client_payload.action }}
+          - **Job**: ${{ github.event.client_payload.job_title }} @ ${{ github.event.client_payload.job_company }}
+          - **Job ID**: ${{ github.event.client_payload.job_id }}
+          - **Triggered**: Automatically from Telegram button click
           
           This ensures GitHub Actions respects your Telegram button clicks.
         delete-branch: true
