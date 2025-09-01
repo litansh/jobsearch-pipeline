@@ -3,27 +3,33 @@ name: Daily Job Search
 on:
   schedule:
     - cron: '30 5 * * *'  # Daily at 05:30 UTC
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   job-search:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+      with:
+        fetch-depth: 0
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
-    - name: Set up environment
+
+    - name: Set up environment variables
       run: |
         echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
         echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $GITHUB_ENV
@@ -33,12 +39,10 @@ jobs:
         echo "SCORE_THRESHOLD=0.50" >> $GITHUB_ENV
         echo "DIGEST_MAX=10" >> $GITHUB_ENV
         echo "JOB_MAX_AGE=14" >> $GITHUB_ENV
-        
-    - name: Create data directories
-      run: |
-        mkdir -p data/raw data/processed outputs
 
-    # NEW: State persistence setup
+    - name: Create data directories
+      run: mkdir -p data/raw data/processed outputs
+
     - name: Setup git for state persistence
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
@@ -46,7 +50,7 @@ jobs:
 
     - name: Pull existing job state
       run: |
-        export PYTHONPATH=$GITHUB_WORKSPACE  
+        export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/github_actions_helper.py pull
 
     - name: Initialize state files
@@ -54,17 +58,16 @@ jobs:
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/github_actions_helper.py init
 
-    # COMPREHENSIVE JOB SEARCH (instead of just crawl.py)
     - name: Search Greenhouse/Lever APIs
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/crawl.py
-        
+
     - name: Search comprehensive job sources
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/real_job_finder.py
-        
+
     - name: Add manually verified jobs
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
@@ -74,42 +77,68 @@ jobs:
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/real_verified_jobs.py
-        
-    # END COMPREHENSIVE SEARCH
-        
+
     - name: Deduplicate and filter jobs
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/deduplicate_jobs.py
-        
+
     - name: Track job ages
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/job_tracker.py update
-        
+
     - name: Score jobs
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/score.py
-        
+
     - name: Send digest
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/digest.py
-        
+
     - name: Push to Notion (if configured)
       if: env.NOTION_API_KEY != ''
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/notion_writer.py
 
-    # NEW: State persistence save
     - name: Show job state summary
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/github_actions_helper.py summary
 
-    - name: Push updated job state
+    - name: Commit job state to branch
       run: |
-        export PYTHONPATH=$GITHUB_WORKSPACE
-        python scripts/github_actions_helper.py push
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        BRANCH="ci/job-update-$(date +'%Y%m%d-%H%M%S')"
+        git checkout -b $BRANCH
+        git add -A
+        git commit -m "🤖 Update job state - $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "No changes"
+        git push origin $BRANCH
+        echo "branch_name=$BRANCH" >> "$GITHUB_ENV"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      id: cpr
+      with:
+        base: main
+        branch: ${{ env.branch_name }}
+        title: "🤖 Job state update"
+        body: "Automated job state update"
+        delete-branch: true
+        draft: false
+
+    - name: Auto-approve PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr review ${{ steps.cpr.outputs.pull-request-number }} --approve
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-merge PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
