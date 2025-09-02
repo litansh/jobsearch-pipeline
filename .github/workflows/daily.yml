@@ -36,7 +36,7 @@ jobs:
         echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
         echo "NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}" >> $GITHUB_ENV
         echo "NOTION_DB_ID=${{ secrets.NOTION_DB_ID }}" >> $GITHUB_ENV
-        echo "SCORE_THRESHOLD=0.50" >> $GITHUB_ENV
+        echo "SCORE_THRESHOLD=0.40" >> $GITHUB_ENV
         echo "DIGEST_MAX=10" >> $GITHUB_ENV
         echo "JOB_MAX_AGE=14" >> $GITHUB_ENV
 
@@ -77,6 +77,11 @@ jobs:
       run: |
         export PYTHONPATH=$GITHUB_WORKSPACE
         python scripts/real_verified_jobs.py
+
+    - name: Search Israeli job sources
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/israeli_job_sources.py
 
     - name: Deduplicate and filter jobs
       run: |
