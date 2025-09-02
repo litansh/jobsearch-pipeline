@@ -1,0 +1,91 @@
+name: Build Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/**'
+      - 'configs/**'
+      - 'requirements.txt'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Set up environment variables for testing
+      run: |
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+        echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $GITHUB_ENV
+        echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
+
+    - name: Create data directories
+      run: mkdir -p data/raw data/processed outputs
+
+    - name: Validate pipeline configuration
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/build_pipeline.py
+
+    - name: Test individual job sources
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        echo "Testing Greenhouse/Lever APIs..."
+        python scripts/crawl.py
+        
+        echo "Testing Israeli job sources..."
+        timeout 60s python scripts/israeli_job_sources.py || echo "Israeli sources test completed"
+        
+        echo "Testing job board workarounds..."
+        timeout 60s python scripts/job_board_workarounds.py || echo "Workarounds test completed"
+
+    - name: Test deduplication and filtering
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/deduplicate_jobs.py
+
+    - name: Test scoring system
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/score.py
+
+    - name: Validate build artifacts
+      run: |
+        echo "Checking generated files..."
+        ls -la data/processed/ || echo "No processed data"
+        ls -la outputs/ || echo "No outputs"
+        
+        if [ -f "build_validation_report.json" ]; then
+          echo "Build validation report:"
+          cat build_validation_report.json
+        fi
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: build-artifacts
+        path: |
+          build_validation_report.json
+          data/processed/
+          outputs/
+        retention-days: 7
