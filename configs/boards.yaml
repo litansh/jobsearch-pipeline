@@ -80,43 +80,41 @@ titles:
 sources:
   greenhouse:
     companies:
-      # Top Israeli Startups 2025
-      - astrix-security     # Non-human identity security
-      - lakefs              # Data versioning for ML/AI
-      - qodo                # AI-based code writing and testing  
-      - zenity              # AI-based cybersecurity
-      - armis               # IoT security platform
-      - lemonade            # AI-powered insurance
-      - vicarius            # Vulnerability management
-      - nvidia-israel       # AI chip leader (#1 best place to work)
-      - check-point         # Firewall and security leader
-      - cyberark            # Privileged access management
+      # Working Israeli Tech Companies
+      - riskified           # E-commerce fraud prevention - WORKS
+      - jfrog               # DevOps and MLOps platform - WORKS
+      - taboola             # Content discovery platform - WORKS
+      - nice                # Customer experience solutions - WORKS
+      - via                 # Transit technology - WORKS
+      - payoneer            # Global payment platform - WORKS
+      - pagaya              # AI-driven financial services - WORKS
       
-      # Established Israeli Tech Companies
-      - riskified           # E-commerce fraud prevention
-      - jfrog               # DevOps and MLOps platform
-      - taboola             # Content discovery platform
-      - nice                # Customer experience solutions
-      - via                 # Transit technology
-      - payoneer            # Global payment platform
-      - pagaya              # AI-driven financial services
+      # Additional Israeli Companies to Test
+      - monday              # Work OS platform - Test if uses Greenhouse
+      - wix                 # Website builder - Test if uses Greenhouse
+      - fiverr              # Freelance marketplace - Test if uses Greenhouse
+      - gong                # Revenue intelligence - Test if uses Greenhouse
+      - outbrain            # Content discovery - Test if uses Greenhouse
+      - checkmarx           # Application security - Test if uses Greenhouse
+      - cyberark            # Privileged access - Test if uses Greenhouse
+      - walkme              # Digital adoption - Test if uses Greenhouse
       
-      # Global Companies with Israeli Offices  
-      - snyk                # Developer security platform
-      - redis               # In-memory database
-      - elastic             # Search and analytics
-      - datadog             # Monitoring and security
-      - zscaler             # Cloud security platform
-      - solarwinds          # Infrastructure company
-      - mongodb             # Database company
-      - okta                # Okta - Identity management
-      - dropbox             # Dropbox - Cloud storage
+      # Working Global Companies with Israeli Offices  
+      - snyk                # Developer security platform - WORKS
+      - redis               # In-memory database - WORKS
+      - elastic             # Search and analytics - WORKS
+      - datadog             # Monitoring and security - WORKS
+      - zscaler             # Cloud security platform - WORKS
+      - solarwinds          # Infrastructure company - WORKS
+      - mongodb             # Database company - WORKS
+      - okta                # Identity management - WORKS
+      - dropbox             # Cloud storage - WORKS
+      - nvidia              # AI/GPU company - Test if uses Greenhouse
+      - microsoft           # Cloud/software - Test if uses Greenhouse
+      - google              # Search/cloud - Test if uses Greenhouse
   lever:
     companies:
-      - spotify             # Spotify - Has Israeli R&D
-      - finaloop            # AI-driven financial reporting
-      - orca-security       # Cloud security platform
-      - transmit-security   # Identity and access management
+      - spotify             # Spotify - Has Israeli R&D - WORKS
   company_pages: []         # add direct JSON/RSS endpoints if you have
   
   # Additional Israeli job sources

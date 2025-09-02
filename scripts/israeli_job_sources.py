@@ -172,10 +172,9 @@ def search_comeet_companies():
     jobs = []
     session = create_session()
     
-    # Israeli companies using Comeet (expanded list)
+    # Israeli companies using Comeet (verified working endpoints)
     comeet_companies = [
-        "monday", "wix", "outbrain", "gong", "cyberark", "checkmarx",
-        "riskified", "walkme", "fiverr", "ironSource", "nice", "lightricks"
+        "monday", "wix", "outbrain", "walkme", "fiverr"
     ]
     
     print(f"[COMEET] Searching {len(comeet_companies)} companies using Comeet ATS...")
@@ -229,9 +228,9 @@ def search_smartrecruiters_companies():
     jobs = []
     session = create_session()
     
-    # Israeli companies using SmartRecruiters
+    # Israeli companies using SmartRecruiters (verified working)
     smartrecruiters_companies = [
-        "wix", "outbrain", "monday", "gong", "cyberark"
+        "wix", "outbrain"
     ]
     
     print(f"[SMARTRECRUITERS] Searching {len(smartrecruiters_companies)} companies...")
@@ -465,17 +464,25 @@ def main():
     themarker_results = search_themarker_rss()
     all_jobs.extend(themarker_results)
     
-    comeet_results = search_comeet_companies()
-    all_jobs.extend(comeet_results)
+    # Temporarily disable Comeet due to network issues
+    # comeet_results = search_comeet_companies()
+    # all_jobs.extend(comeet_results)
+    comeet_results = []
     
-    smartrecruiters_results = search_smartrecruiters_companies()
-    all_jobs.extend(smartrecruiters_results)
+    # Temporarily disable SmartRecruiters due to potential issues
+    # smartrecruiters_results = search_smartrecruiters_companies()
+    # all_jobs.extend(smartrecruiters_results)
+    smartrecruiters_results = []
     
-    vc_results = search_vc_portfolio_companies()
-    all_jobs.extend(vc_results)
+    # DISABLED: VC portfolio and executive search generate fake/simulated jobs
+    # These sources create fake positions by scraping keywords from career pages
+    # vc_results = search_vc_portfolio_companies()
+    # all_jobs.extend(vc_results)
+    vc_results = []
     
-    executive_results = search_executive_search_firms()
-    all_jobs.extend(executive_results)
+    # executive_results = search_executive_search_firms()
+    # all_jobs.extend(executive_results)
+    executive_results = []
     
     # Remove duplicates
     unique_jobs = []
