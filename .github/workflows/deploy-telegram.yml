@@ -1,0 +1,180 @@
+name: Deploy - Telegram Search Command
+
+on:
+  repository_dispatch:
+    types: [telegram_search_command]
+  workflow_dispatch:
+    inputs:
+      search_type:
+        description: 'Search type'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - quick
+        - clean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-telegram-search:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Set up environment variables
+      run: |
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+        echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> $GITHUB_ENV
+        echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> $GITHUB_ENV
+        echo "NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}" >> $GITHUB_ENV
+        echo "NOTION_DB_ID=${{ secrets.NOTION_DB_ID }}" >> $GITHUB_ENV
+        echo "SCORE_THRESHOLD=0.40" >> $GITHUB_ENV
+        echo "DIGEST_MAX=15" >> $GITHUB_ENV
+        echo "JOB_MAX_AGE=14" >> $GITHUB_ENV
+
+    - name: Create data directories
+      run: mkdir -p data/raw data/processed outputs
+
+    - name: Setup git for state persistence
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py setup-git
+
+    - name: Pull existing job state
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py pull
+
+    - name: Initialize state files
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py init
+
+    - name: Send processing notification
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        SEARCH_TYPE="${{ github.event.client_payload.search_type || github.event.inputs.search_type || 'full' }}"
+        python -c "
+        from scripts.telegram_bot import telegram_bot
+        search_type = '$SEARCH_TYPE'
+        if search_type == 'full':
+            telegram_bot.send_message('🔍 <b>Full Job Search Started</b>\n\n⏳ Running comprehensive search across all Israeli sources...\n📱 Results in 2-3 minutes!')
+        elif search_type == 'quick':
+            telegram_bot.send_message('⚡ <b>Quick Search Started</b>\n\n🔍 Searching Greenhouse/Lever APIs...\n📱 Results shortly!')
+        elif search_type == 'clean':
+            telegram_bot.send_message('🧹 <b>Job Cleanup Started</b>\n\n🗑️ Removing old jobs from database...')
+        "
+
+    - name: Execute deployment pipeline
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        SEARCH_TYPE="${{ github.event.client_payload.search_type || github.event.inputs.search_type || 'full' }}"
+        
+        if [ "$SEARCH_TYPE" = "full" ]; then
+          echo "🚀 Running FULL deployment pipeline..."
+          python scripts/deploy_pipeline.py --mode full
+          
+        elif [ "$SEARCH_TYPE" = "quick" ]; then
+          echo "⚡ Running QUICK deployment pipeline..."
+          python scripts/deploy_pipeline.py --mode quick
+          
+        elif [ "$SEARCH_TYPE" = "clean" ]; then
+          echo "🧹 Running CLEANUP..."
+          python scripts/job_tracker.py cleanup
+          python scripts/github_actions_helper.py summary
+        fi
+
+    - name: Push to Notion (if configured)
+      if: env.NOTION_API_KEY != ''
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/notion_writer.py
+
+    - name: Show final summary
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        python scripts/github_actions_helper.py summary
+
+    - name: Commit results to branch
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        SEARCH_TYPE="${{ github.event.client_payload.search_type || github.event.inputs.search_type || 'full' }}"
+        BRANCH="deploy/job-search-$(date +'%Y%m%d-%H%M%S')"
+        git checkout -b $BRANCH
+        git add -A
+        git commit -m "🚀 Deploy job search ($SEARCH_TYPE) - $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "No changes"
+        git push origin $BRANCH
+        echo "branch_name=$BRANCH" >> "$GITHUB_ENV"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      id: cpr
+      with:
+        base: main
+        branch: ${{ env.branch_name }}
+        title: "🚀 Job search deployment results"
+        body: |
+          Automated job search deployment results
+          
+          Search type: ${{ github.event.client_payload.search_type || github.event.inputs.search_type || 'full' }}
+          Triggered by: ${{ github.event.client_payload.triggered_by || 'manual' }}
+          
+          This deployment searched for DevOps/Platform/Infrastructure leadership positions across:
+          - Israeli companies (Greenhouse/Lever APIs)
+          - Enhanced Israeli job sources
+          - Job board workarounds
+          - Company career pages
+        delete-branch: true
+        draft: false
+
+    - name: Auto-approve PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr review ${{ steps.cpr.outputs.pull-request-number }} --approve
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-merge PR
+      if: steps.cpr.outputs.pull-request-number != ''
+      run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --squash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Send completion notification
+      if: always()
+      run: |
+        export PYTHONPATH=$GITHUB_WORKSPACE
+        SEARCH_TYPE="${{ github.event.client_payload.search_type || github.event.inputs.search_type || 'full' }}"
+        python -c "
+        from scripts.telegram_bot import telegram_bot
+        import os
+        
+        search_type = '$SEARCH_TYPE'
+        job_status = '${{ job.status }}'
+        
+        if job_status == 'success':
+            if search_type == 'clean':
+                telegram_bot.send_message('✅ <b>Job Cleanup Complete</b>\n\n🧹 Old jobs removed from database')
+            else:
+                telegram_bot.send_message('✅ <b>Job Search Deployment Complete</b>\n\n📊 Check your digest for new opportunities!')
+        else:
+            telegram_bot.send_message('❌ <b>Job Search Failed</b>\n\nPlease check GitHub Actions logs for details.')
+        "
