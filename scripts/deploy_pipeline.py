@@ -146,11 +146,18 @@ class PipelineDeployer:
             "Update job age information"
         )
         
-        # Step 10: Score jobs
+        # Step 10: Learn from user feedback
+        self.run_step(
+            "Learning System",
+            "scripts/learning_system.py",
+            "Analyze user feedback patterns to improve matching"
+        )
+        
+        # Step 11: Score jobs (with learning adjustments)
         self.run_step(
             "Job Scoring",
             "scripts/score.py",
-            "Score jobs against user profile using AI"
+            "Score jobs against user profile using AI + learned preferences"
         )
         
         # Step 11: Send digest

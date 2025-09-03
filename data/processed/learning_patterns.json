@@ -1,0 +1,45 @@
+{
+  "preferred_keywords": [
+    "head",
+    "devops",
+    "director",
+    "engineering",
+    "infrastructure",
+    "site",
+    "reliability",
+    "manager",
+    "platform"
+  ],
+  "avoided_keywords": [
+    "devops",
+    "manager",
+    "head",
+    "test",
+    "engineering"
+  ],
+  "preferred_companies": [
+    "vicarius",
+    "zenity",
+    "transmit security",
+    "pango",
+    "riverside.fm",
+    "jfrog",
+    "job",
+    "paragon"
+  ],
+  "avoided_companies": [
+    "vicarius",
+    "testcompany",
+    "bigid"
+  ],
+  "preferred_roles": [
+    "devops",
+    "head",
+    "director",
+    "infrastructure",
+    "sre",
+    "platform"
+  ],
+  "avoided_roles": [],
+  "last_updated": "2025-09-03"
+}

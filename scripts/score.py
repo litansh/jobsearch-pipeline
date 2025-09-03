@@ -29,6 +29,18 @@ def cosine(a, b):
 
 def main():
     profile_vec = embed(PROFILE)
+    
+    # Load learning system for preference adjustments
+    try:
+        from scripts.learning_system import JobLearningSystem
+        learning = JobLearningSystem()
+        use_learning = True
+        print("[LEARNING] Using learned preferences for scoring adjustments")
+    except:
+        learning = None
+        use_learning = False
+        print("[INFO] Learning system not available - using base scoring only")
+    
     rows = []
     with open(JOBS_JL, "r", encoding="utf-8") as f:
         for line in f:
@@ -39,19 +51,40 @@ def main():
             # Build JD text (title + jd if present)
             jd_text = f"{j.get('title','')}\n{j.get('jd','')}"
             vec = embed(jd_text)
-            score = cosine(profile_vec, vec)
+            base_score = cosine(profile_vec, vec)
+            
+            # Apply learning adjustments
+            final_score = base_score
+            if use_learning:
+                preference_adjustment = learning.calculate_preference_score(
+                    j.get('title', ''), 
+                    j.get('company', '')
+                )
+                final_score = base_score + preference_adjustment
+                final_score = max(0.0, min(1.0, final_score))  # Keep between 0-1
+            
             why = []
             ttl = (j.get('title','') or '').lower()
             if 'head' in ttl or 'director' in ttl: why.append("senior leadership scope")
             if 'devops' in ttl or 'platform' in ttl or 'sre' in ttl: why.append("platform reliability focus")
+            if 'infrastructure' in ttl: why.append("infrastructure expertise match")
             if 'kubernetes' in j.get('jd','').lower() or 'eks' in j.get('jd','').lower(): why.append("k8s scale")
+            
+            # Add learning-based explanations
+            if use_learning and abs(final_score - base_score) > 0.05:
+                if final_score > base_score:
+                    why.append("matches learned preferences")
+                else:
+                    why.append("adjusted based on feedback patterns")
+            
             rows.append({
                 "id": j.get("id"),
                 "title": j.get("title"),
                 "company": j.get("company"),
                 "location": j.get("location"),
                 "url": j.get("url"),
-                "score": round(score, 4),
+                "score": round(final_score, 4),
+                "base_score": round(base_score, 4) if use_learning else None,
                 "why_fit": ", ".join(why) or "strong profile alignment",
                 "age": j.get("age", 1),
                 "first_seen": j.get("first_seen", ""),
