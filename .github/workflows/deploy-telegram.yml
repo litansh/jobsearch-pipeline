@@ -47,7 +47,7 @@ jobs:
         echo "NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}" >> $GITHUB_ENV
         echo "NOTION_DB_ID=${{ secrets.NOTION_DB_ID }}" >> $GITHUB_ENV
         echo "SCORE_THRESHOLD=0.40" >> $GITHUB_ENV
-        echo "DIGEST_MAX=15" >> $GITHUB_ENV
+        echo "DIGEST_MAX=20" >> $GITHUB_ENV
         echo "JOB_MAX_AGE=14" >> $GITHUB_ENV
 
     - name: Create data directories
