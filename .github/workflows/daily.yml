@@ -1,8 +1,9 @@
-name: Daily Job Search
+name: Daily Job Search (DEPRECATED - Use deploy-daily.yml)
 
 on:
-  schedule:
-    - cron: '30 5 * * *'  # Daily at 05:30 UTC
+  # DISABLED: Replaced by deploy-daily.yml for clean build/deploy separation
+  # schedule:
+  #   - cron: '30 5 * * *'  # Daily at 05:30 UTC
   workflow_dispatch:
 
 permissions:
