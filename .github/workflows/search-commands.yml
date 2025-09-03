@@ -2,8 +2,12 @@ name: Telegram Search Commands (DEPRECATED - Use deploy-telegram.yml)
 
 on:
   # DISABLED: Replaced by deploy-telegram.yml for clean build/deploy separation
-  # repository_dispatch:
-  #   types: [telegram_search_command]
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'This workflow is deprecated - use deploy-telegram.yml instead'
+        required: false
+        default: 'deprecated'
 
 permissions:
   contents: write
