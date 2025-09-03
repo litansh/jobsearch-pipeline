@@ -1,8 +1,9 @@
-name: Telegram Search Commands
+name: Telegram Search Commands (DEPRECATED - Use deploy-telegram.yml)
 
 on:
-  repository_dispatch:
-    types: [telegram_search_command]
+  # DISABLED: Replaced by deploy-telegram.yml for clean build/deploy separation
+  # repository_dispatch:
+  #   types: [telegram_search_command]
 
 permissions:
   contents: write
