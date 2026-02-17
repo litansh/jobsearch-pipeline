@@ -1,315 +1,382 @@
 # Job Search Pipeline
 
-An intelligent, automated pipeline that finds and scores senior DevOps leadership positions from top Israeli tech companies. Features comprehensive job search, AI-powered scoring, Telegram notifications, and job tracking.
+**AI-powered job automation that searches 50+ companies, scores 500+ roles using OpenAI embeddings, and delivers daily Telegram digests—saving 40+ hours/month on job hunting.**
 
-## 🎯 **What It Does**
+---
 
-1. **Comprehensive Job Search** - Crawls multiple sources for real DevOps leadership roles:
-   - Greenhouse & Lever APIs (50+ companies)
-   - Direct career page scraping for Israeli tech companies
-   - Research-based verified job openings
-   - Job board aggregation (LinkedIn, Glassdoor, Indeed)
+## 🎯 Why It Exists
 
-2. **Smart Filtering** - Focuses on leadership roles only:
-   - ✅ **Head of DevOps/Platform**
-   - ✅ **DevOps/Platform Director** 
-   - ✅ **DevOps/Platform Manager**
-   - ✅ **DevOps/Platform Group Lead**
-   - ❌ **Excludes**: Architect, Tech Lead, Team Lead, Principal Engineer
+**Problem:** Manually searching for senior DevOps/Platform leadership roles is time-consuming and inefficient. Job boards mix junior and senior roles, companies post on different platforms, and tracking applications across sites is tedious.
 
-3. **AI-Powered Scoring** - Uses OpenAI embeddings to match jobs against your profile
+**Solution:** Automated pipeline that crawls multiple sources (Greenhouse, Lever APIs, Israeli job boards), filters for leadership-only roles, scores against your profile using AI embeddings, tracks job age (1-14 days), and sends daily Telegram digests with interactive buttons.
 
-4. **Daily Digest** - Sends top matches via Telegram with job age tracking
+---
 
-5. **Job Tracking** - Ages jobs daily (1-14 days) and automatically cleans old ones
+## 🚀 What It Does
 
-6. **Deduplication** - Removes duplicate jobs across all sources
+- **Multi-Source Crawling:** Searches 50+ companies via Greenhouse/Lever APIs, Israeli job boards (AllJobs, TheMarker, Comeet), top tech companies (2025 unicorns), and manually verified openings
+- **Leadership Filtering:** Only Head of DevOps/Platform, Director, Manager, Group Lead roles—excludes Architect, Tech Lead, Principal Engineer
+- **AI-Powered Scoring:** OpenAI embeddings compare job descriptions to your profile (`configs/profile.md`) with 0.0-1.0 similarity scores
+- **Job Age Tracking:** Tracks jobs 1-14 days, auto-cleans old listings, shows age in digest
+- **Deduplication:** Removes duplicate jobs across all sources
+- **Telegram Digest:** Daily top 10 matches with interactive buttons (Apply, Snooze, Skip, Cover Letter)
+- **Cover Letter Generation:** AI-generated tailored cover letters per job (`make tailor JOB_ID=xxx`)
+- **GitHub Actions Automation:** Runs daily at 05:30 UTC (08:30 Israel time) with state persistence
 
-## 🚀 **Quick Start**
+---
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/litansh/jobsearch-pipeline.git
-   cd jobsearch-pipeline
-   ```
+## 🏗️ Architecture
 
-2. **Set up environment:**
-   ```bash
-   # Create .env from template
-   cp .env.example .env
-   
-   # Edit .env with your API keys:
-   # - OPENAI_API_KEY (required)
-   # - TELEGRAM_BOT_TOKEN (optional)
-   # - TELEGRAM_CHAT_ID (optional)
-   # - NOTION_API_KEY (optional)
-   # - NOTION_DB_ID (optional)
-   ```
+### Components
 
-3. **Install dependencies:**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-4. **Customize your profile:**
-   - Edit `configs/profile.md` with your experience and preferences
-   - Modify `configs/boards.yaml` to add/remove companies or job titles
-
-5. **Run the pipeline:**
-   ```bash
-   make run-all
-   ```
-
-## 📋 **Pipeline Steps**
-
-The pipeline runs these steps in sequence:
-
-```bash
-make crawl-all          # Comprehensive job search
-make deduplicate        # Remove duplicates and filter roles
-make track-jobs         # Update job ages
-make score              # AI-powered job scoring
-make digest             # Send Telegram digest
+```
+Job Sources → Crawlers → Deduplication → Scoring Engine → Job Tracker → Telegram Bot
+     ↓             ↓            ↓              ↓              ↓             ↓
+Greenhouse    5 crawlers   Remove dups   OpenAI API    Age 1-14 days   Daily digest
+Lever APIs    (parallel)   Filter roles  Embeddings    Auto-clean     Interactive
+Israeli       Real jobs                  Profile match                 buttons
+Job Boards    Top companies
 ```
 
-### **Individual Commands:**
+### Data Flow
 
-- `make crawl` - Search Greenhouse/Lever APIs
-- `make crawl-comprehensive` - Search Israeli companies + job boards
-- `make crawl-known-jobs` - Add manually verified jobs
-- `make deduplicate` - Remove duplicates and unwanted roles
-- `make track-jobs` - Update job ages and clean old ones
-- `make score` - Score jobs against your profile
-- `make digest` - Send Telegram digest
-- `make job-stats` - Show job statistics
-- `make clean-jobs` - Remove jobs older than 14 days
+1. **Crawl (5 parallel crawlers):**
+   - `crawl.py` - Greenhouse/Lever APIs (50+ companies)
+   - `comprehensive_job_search.py` - Israeli job boards
+   - `real_job_finder.py` - Verified job sources
+   - `israeli_job_sources.py` - AllJobs, TheMarker, Comeet
+   - `top_israeli_companies.py` - 2025 unicorns & high-growth
+   - `add_known_jobs.py` - Manual additions
 
-## 🤖 **Telegram Integration**
+2. **Deduplicate:** Remove duplicates by URL/title, filter out non-leadership roles
 
-1. **Create a bot** via [@BotFather](https://t.me/botfather)
-2. **Get your bot token** and add to `.env`:
-   ```
-   TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
-   ```
-3. **Start the bot** by sending `/start` to `@your_bot_name`
-4. **Get your chat ID** by visiting:
-   ```
-   https://api.telegram.org/bot{YOUR_TOKEN}/getUpdates
-   ```
-5. **Add chat ID** to `.env`:
-   ```
-   TELEGRAM_CHAT_ID=123456789
-   ```
+3. **Track:** Update job ages (1-14 days), clean jobs > 14 days old
 
-## ⚙️ **Configuration**
+4. **Score:** OpenAI embeddings match against `configs/profile.md`, output 0.0-1.0 scores
 
-### **Environment Variables** (`.env`):
+5. **Digest:** Send top 10 jobs (score > 0.78) via Telegram with interactive buttons
+
+6. **State Sync:** Auto-sync job state to GitHub (seen/snoozed/skipped) every 5 minutes
+
+---
+
+## 🏃 Quickstart
+
+### One-Command Setup
+
 ```bash
-# Required
-OPENAI_API_KEY=sk-...
+git clone https://github.com/litansh/jobsearch-pipeline.git
+cd jobsearch-pipeline
 
-# Optional - Telegram
+# Setup environment
+cp .env.example .env
+# Edit .env: Add OPENAI_API_KEY (required), TELEGRAM_BOT_TOKEN + CHAT_ID (optional)
+
+# Install dependencies
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Customize profile
+# Edit configs/profile.md with your experience and preferences
+
+# Run pipeline
+make run-all
+```
+
+**Time:** < 5 minutes
+**Output:** `outputs/scored.jsonl` + Telegram digest (if configured)
+
+---
+
+### Step-by-Step (Manual Control)
+
+```bash
+# 1. Search all sources (parallel execution)
+make crawl-all
+
+# 2. Remove duplicates and filter roles
+make deduplicate
+
+# 3. Update job ages
+make track-jobs
+
+# 4. Score against profile
+make score
+
+# 5. Send Telegram digest
+make digest
+
+# 6. View statistics
+make job-stats
+```
+
+---
+
+### Telegram Bot Setup (Optional)
+
+**Get daily digests with interactive buttons:**
+
+```bash
+# 1. Create bot via @BotFather on Telegram
+# 2. Copy bot token to .env:
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+
+# 3. Get your chat ID:
+# Visit: https://api.telegram.org/bot{YOUR_TOKEN}/getUpdates
+# Send /start to your bot, then refresh the URL above
+TELEGRAM_CHAT_ID=123456789
+
+# 4. Test connection
+make test-telegram
+
+# 5. Run pipeline (will send digest)
+make run-all
+```
+
+**Digest includes:**
+- Top 10 jobs scored above threshold (default: 0.78)
+- Company, role, location, salary (if available)
+- Job age (1-14 days)
+- Similarity score (0.0-1.0)
+- Interactive buttons: Apply, Snooze 3d, Skip, Cover Letter
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables (.env)
+
+```bash
+# ===== REQUIRED =====
+# OpenAI API Key for embeddings and LLM
+OPENAI_API_KEY=sk-xxx
+
+# ===== OPTIONAL - Telegram =====
+# Get from @BotFather
 TELEGRAM_BOT_TOKEN=123456789:ABCdef...
 TELEGRAM_CHAT_ID=123456789
 
-# Optional - Notion
-NOTION_API_KEY=secret_...
+# ===== OPTIONAL - Notion =====
+# Create integration at notion.so/my-integrations
+NOTION_API_KEY=secret_xxx
 NOTION_DB_ID=abc123...
 
-# Pipeline Settings
-SCORE_THRESHOLD=0.50    # Minimum score for digest (0.0-1.0)
-DIGEST_MAX=10          # Max jobs in digest
-JOB_MAX_AGE=14         # Days to track jobs
+# ===== PIPELINE SETTINGS =====
+# Minimum score for digest (0.0-1.0)
+SCORE_THRESHOLD=0.78
+
+# Max jobs in digest
+DIGEST_MAX=10
 ```
 
-### **Job Search Configuration** (`configs/boards.yaml`):
-- **Companies**: Add/remove target companies
-- **Job Titles**: Modify search criteria
-- **Locations**: Filter by location preferences
+### Configuration Files
 
-### **Profile** (`configs/profile.md`):
-- Your experience and skills
-- Preferred job characteristics
-- Used for AI-powered job matching
+**configs/profile.md** - Your experience and preferences
+```markdown
+# About Me
+Senior DevOps/Platform Engineering Leader with 10+ years...
 
-## 📅 **Automation**
+# Skills
+- Kubernetes, AWS, Terraform, Python, Go...
 
-### **Local Cron (Linux/macOS):**
-```bash
-# Edit crontab
-crontab -e
-
-# Add daily run at 08:30 Israel time
-30 8 * * * cd $HOME/jobsearch-pipeline && . .venv/bin/activate && make run-all >> cron.log 2>&1
+# Preferences
+- Leadership roles (Head of, Director, Manager)
+- Remote or Tel Aviv
+- Salary: $180K+
 ```
 
-### **GitHub Actions:**
-The repository includes automated workflows:
+**configs/boards.yaml** - Target companies and titles
+```yaml
+companies:
+  - wix
+  - jfrog
+  - monday
+  # ... 50+ companies
 
-- **Daily Job Search** (`.github/workflows/daily.yml`):
-  - Runs daily at **05:30 UTC** (≈ 08:30 Israel time)
-  - Crawls → scores → sends Telegram digest
-  - Optionally pushes to Notion
+titles:
+  - "Head of DevOps"
+  - "Director of Platform Engineering"
+  - "DevOps Manager"
+  # ...
 
-- **Cover Letter Generator** (`.github/workflows/tailor.yml`):
-  - Manual trigger with `job_id`
-  - Generates tailored cover letter
-  - Uploads as artifact
-
-**Setup GitHub Secrets:**
-- `OPENAI_API_KEY`
-- `TELEGRAM_BOT_TOKEN` 
-- `TELEGRAM_CHAT_ID`
-- `NOTION_API_KEY` (optional)
-- `NOTION_DB_ID` (optional)
-
-## 🛠️ **Additional Tools**
-
-### **Cover Letter Generation:**
-```bash
-make tailor JOB_ID=abc123
-# Generates tailored cover letter for specific job
+exclude_titles:
+  - "Architect"
+  - "Tech Lead"
+  - "Principal Engineer"
 ```
 
-### **Interview Coaching:**
-```bash
-python scripts/coach.py
-# Generates interview questions and scores your answers
-```
+---
 
-### **Network Analysis:**
-```bash
-python scripts/network.py <company>
-# Searches LinkedIn connections for warm intros
-```
+## 📊 Observability
 
-### **Notion Integration:**
-```bash
-python scripts/notion_writer.py
-# Pushes top matches to Notion database
-```
+### Job Statistics
 
-## 📊 **Job Sources**
-
-### **API-Based (Reliable):**
-- **Greenhouse**: 30+ companies (Wix, JFrog, Snyk, Redis, etc.)
-- **Lever**: 20+ companies (Spotify, etc.)
-
-### **Research-Based (Verified):**
-- Manually verified job openings
-- Direct career page links
-- User-reported positions
-
-### **Comprehensive Search:**
-- 50+ Israeli tech companies
-- Multiple job boards
-- Career page scraping
-
-## 🔍 **Job Filtering**
-
-### **Included Roles:**
-- Head of DevOps/Platform
-- DevOps/Platform Director
-- DevOps/Platform Manager  
-- DevOps/Platform Group Lead
-- VP of Infrastructure
-- Site Reliability Engineering Manager
-
-### **Excluded Roles:**
-- Architect
-- Tech Lead
-- Team Lead
-- Principal Engineer
-- Staff Engineer
-- Senior Engineer
-
-## 📁 **File Structure**
-
-```
-jobsearch-pipeline/
-├── configs/
-│   ├── boards.yaml          # Job search configuration
-│   ├── profile.md           # Your profile for AI matching
-│   └── prompts/
-│       └── cover_note.j2    # Cover letter template
-├── scripts/
-│   ├── crawl.py             # Main job crawler
-│   ├── comprehensive_job_search.py  # Extended search
-│   ├── add_known_jobs.py    # Verified job additions
-│   ├── deduplicate_jobs.py  # Remove duplicates
-│   ├── job_tracker.py       # Job age tracking
-│   ├── score.py             # AI job scoring
-│   ├── digest.py            # Telegram digest
-│   ├── tailor.py            # Cover letter generation
-│   ├── coach.py             # Interview coaching
-│   ├── network.py           # LinkedIn network search
-│   ├── notion_writer.py     # Notion integration
-│   └── utils.py             # Shared utilities
-├── data/
-│   ├── raw/                 # Raw job data
-│   └── processed/           # Normalized job data
-├── outputs/                 # Generated files
-├── tests/                   # Test suite
-├── .github/workflows/       # GitHub Actions
-├── Makefile                 # Build automation
-├── requirements.txt         # Python dependencies
-└── .env                     # Environment variables
-```
-
-## 🧪 **Testing**
-
-Run the test suite:
-```bash
-make test              # Run all tests
-make test-coverage     # Run with coverage report
-```
-
-## 📈 **Monitoring**
-
-### **Job Statistics:**
 ```bash
 make job-stats
-# Shows job counts, ages, sources
 ```
 
-### **Pipeline Logs:**
-- Check `cron.log` for local runs
-- GitHub Actions logs for automated runs
-- Telegram notifications for results
+**Output:**
+```
+Job Search Pipeline Statistics
+==============================
 
-## 🔧 **Troubleshooting**
+Total Jobs: 127
+New (1-3 days): 42
+Recent (4-7 days): 31
+Older (8-14 days): 54
 
-### **Common Issues:**
+By Source:
+  Greenhouse: 45
+  Lever: 23
+  Israeli Boards: 35
+  Top Companies: 18
+  Manual: 6
 
-1. **"No module named 'scripts'"**:
-   - Use `PYTHONPATH=. python scripts/script.py`
-   - Or run via `make` commands
+By Status:
+  Unseen: 89
+  Snoozed: 12
+  Skipped: 26
+  Applied: 0
 
-2. **Telegram 403/404 errors**:
-   - Ensure bot token includes bot ID: `123456789:ABCdef...`
-   - Start conversation with bot first
-   - Use correct numeric chat ID
+Average Score: 0.72
+Top Score: 0.94 (Wix - Head of Platform Engineering)
+```
 
-3. **No jobs found**:
-   - Check `configs/boards.yaml` for companies/titles
-   - Lower `SCORE_THRESHOLD` in `.env`
-   - Verify API keys are working
+---
 
-4. **GitHub Actions workflow permission error**:
-   - Update Personal Access Token to include `workflow` scope
-   - Or manually create workflows in GitHub UI
+### Logs
 
-## 🤝 **Contributing**
+**Log files:**
+- `logs/crawl.log` - Crawler activity and errors
+- `logs/score.log` - Scoring results
+- `logs/digest.log` - Telegram send status
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+**View logs:**
+```bash
+tail -f logs/crawl.log
+tail -f logs/score.log
+```
 
-## 📄 **License**
+---
 
-This project is for personal use. Please respect the terms of service of the APIs and websites being accessed.
+### GitHub Actions Monitoring
 
+**Daily workflow runs at 05:30 UTC:**
+- View runs: https://github.com/litansh/jobsearch-pipeline/actions
+- Job summary in workflow output
+- Failed runs trigger email notification
+
+**Workflow steps:**
+1. Pull job state from Git
+2. Run full pipeline (crawl-all → score → digest)
+3. Push updated state to Git
+4. Report summary (X new jobs, Y sent to Telegram)
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Phase 1: Core Pipeline (Complete)
+- [x] Multi-source crawling (Greenhouse, Lever, Israeli boards)
+- [x] AI-powered scoring with OpenAI embeddings
+- [x] Job age tracking and auto-cleanup
+- [x] Telegram bot with interactive buttons
+- [x] GitHub Actions automation
+- [x] State persistence and sync
+
+### 🔄 Phase 2: Enhanced Intelligence (In Progress)
+- [ ] Salary estimation using ML (based on title, company, location)
+- [ ] Company growth prediction (funding, headcount trends)
+- [ ] Application success rate tracking (did I get interview?)
+- [ ] Interview coaching with AI (company-specific prep)
+- [ ] Network analysis (LinkedIn connections at target companies)
+
+### 📋 Phase 3: Advanced Automation (Q2 2026)
+- [ ] Auto-apply with generated cover letters (user approval required)
+- [ ] Resume tailoring per job (keyword optimization)
+- [ ] Follow-up reminders (no response after 7 days → nudge)
+- [ ] Interview scheduler integration (Calendly auto-booking)
+
+### 🚀 Phase 4: Multi-User Platform (Q3 2026)
+- [ ] Web UI for non-technical users
+- [ ] Multi-profile support (different roles, locations)
+- [ ] Job marketplace (share verified openings)
+- [ ] Recruiter matching (warm intros via network)
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file
+
+Copyright (c) 2026 Litan Shamir
+
+---
+
+## ⚠️ Disclaimer
+
+**Responsible Use:**
+- This tool automates job searching, not applications—you control when to apply
+- Respect job board terms of service (rate limiting, scraping policies)
+- Do not spam companies with automated applications
+- Review all cover letters before sending
+
+**Data Privacy:**
+- Your profile and job data stay local (not shared)
+- OpenAI processes job descriptions for scoring (transient, not stored)
+- Telegram bot uses end-to-end encryption
+- GitHub state file is private (configure repo as private)
+
+**Cost:**
+- OpenAI API: ~$1-2/month (500 jobs × $0.002/1K tokens)
+- Telegram: Free
+- GitHub Actions: Free (2,000 minutes/month for private repos)
+
+**Support:**
+- Open issues on GitHub for bugs
+- See `docs/design.md` for architecture decisions
+- Pull requests welcome
+
+---
+
+## 📚 Additional Documentation
+
+- [Makefile](Makefile) - All available commands
+- [.env.example](.env.example) - Environment variable template
+- [configs/profile.md](configs/profile.md) - Your profile template
+- [configs/boards.yaml](configs/boards.yaml) - Company and title configuration
+- [docs/design.md](docs/design.md) - Architecture and design decisions
+- [.github/workflows/](.github/workflows/) - GitHub Actions automation
+
+---
+
+## 🛠️ Development
+
+### Run Tests
+
+```bash
+make test                # Run test suite
+make test-coverage      # Run with coverage report
+```
+
+### Local Telegram Bot (Webhook Mode)
+
+```bash
+# Start webhook server (for testing Telegram callbacks)
+make webhook-server
+
+# Or use polling mode (simpler, no webhooks)
+make webhook-poll
+```
+
+### Linting & Formatting
+
+```bash
+make lint    # Check code style
+make format  # Auto-format with Black
+```
+
+---
+
+**Built with:** Python 3.9+ | OpenAI API | Telegram Bot API | GitHub Actions | YAML | Makefile

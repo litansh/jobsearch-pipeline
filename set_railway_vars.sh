@@ -18,13 +18,28 @@ echo "Linking to your Railway project..."
 railway link
 
 # Set environment variables
-echo "Setting environment variables..."
-railway variables set TELEGRAM_BOT_TOKEN=8267615813:AAGmagw5Bh4a6NETvcaIIL-G1_Jv1OLjKoI
-railway variables set TELEGRAM_CHAT_ID=277031361
-
-echo "Please set these manually (sensitive):"
-echo "railway variables set GITHUB_TOKEN=your_github_token_here"
-echo "railway variables set OPENAI_API_KEY=your_openai_key_here"
-
-echo "After setting all variables, redeploy:"
+echo ""
+echo "==========================================="
+echo "IMPORTANT: Set your environment variables"
+echo "==========================================="
+echo ""
+echo "Run these commands with YOUR OWN credentials:"
+echo ""
+echo "railway variables set TELEGRAM_BOT_TOKEN=<your_bot_token_from_@BotFather>"
+echo "railway variables set TELEGRAM_CHAT_ID=<your_chat_id>"
+echo "railway variables set GITHUB_TOKEN=<your_github_token>"
+echo "railway variables set OPENAI_API_KEY=<your_openai_key>"
+echo ""
+echo "To get your Telegram bot token:"
+echo "  1. Message @BotFather on Telegram"
+echo "  2. Send /newbot"
+echo "  3. Follow instructions to get token"
+echo ""
+echo "To get your Telegram chat ID:"
+echo "  1. Message your bot with /start"
+echo "  2. Visit: https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates"
+echo "  3. Look for 'chat':{'id': YOUR_CHAT_ID}"
+echo ""
+echo "After setting all variables, deploy:"
 echo "railway up --detach"
+echo ""
