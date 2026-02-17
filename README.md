@@ -62,6 +62,85 @@ Job Boards    Top companies
 
 ## 🏃 Quickstart
 
+### Demo Mode (No API Keys Required)
+
+**Test the pipeline structure without live searches:**
+
+```bash
+git clone https://github.com/litansh/jobsearch-pipeline.git
+cd jobsearch-pipeline
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# Run tests to verify everything works
+make test
+
+# Check sample data processing
+cat test_data/sample_jobs.jsonl | head -5
+```
+
+**What works without API keys:**
+- ✅ Deduplication logic
+- ✅ Job filtering by seniority/keywords
+- ✅ Job tracking (age calculation)
+- ✅ Makefile commands
+- ❌ Live job searches (requires network)
+- ❌ AI-powered scoring (requires OpenAI API key)
+- ❌ Telegram notifications (requires bot token)
+
+---
+
+### Local Run (Full Pipeline)
+
+**Production setup with OpenAI API:**
+
+```bash
+git clone https://github.com/litansh/jobsearch-pipeline.git
+cd jobsearch-pipeline
+
+# Setup environment
+cp .env.example .env
+# Edit .env: Add OPENAI_API_KEY (required)
+# TELEGRAM_* variables are optional
+
+# Install dependencies
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Customize profile
+# Edit configs/profile.md with your experience and preferences
+
+# Run full pipeline
+make run-all
+```
+
+**Time:** < 5 minutes
+**Output:** `outputs/scored.jsonl` + Telegram digest (if configured)
+
+---
+
+### Scheduled Run (GitHub Actions)
+
+**Automated daily searches without local setup:**
+
+1. **Fork the repository** on GitHub
+2. **Add secrets** (Settings → Secrets and variables → Actions):
+   - `OPENAI_API_KEY` (required) - Get from https://platform.openai.com/api-keys
+   - `TELEGRAM_BOT_TOKEN` (optional) - Get from @BotFather on Telegram
+   - `TELEGRAM_CHAT_ID` (optional) - Your Telegram user ID
+3. **Enable Actions** (Actions tab → Enable workflows)
+4. **Customize profile:** Edit `configs/profile.md` via GitHub web editor
+5. **Done!** Pipeline runs daily at 9 AM UTC
+
+**GitHub will:**
+- Search 50+ companies automatically
+- Score jobs against your profile
+- Send Telegram digest with top matches
+- Store results in repository (outputs/ branch)
+
+---
+
 ### One-Command Setup
 
 ```bash
